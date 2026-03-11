@@ -21,6 +21,7 @@ Before declaring `PASS`, open the actual exported `PNG`, `SVG`, or `PDF`. If nee
 - Keep the visual language clean, balanced, and readable.
 - Do not allow text, ticks, legends, colorbars, or panel labels to overlap or clip.
 - Use a white background and restrained styling. Do not use 3D effects, shadows, decorative gradients, or patterned fills.
+- Treat the colormap as part of the scientific encoding. For mapped fields, prefer `cmaps`-based discrete levels or explicitly discretized `cmaps` coordinates when available, and choose the colormap family, numeric range, and interval to match the variable and scientific question rather than plotting defaults.
 - Reuse the project's font setup if it already exists; otherwise use one common sans-serif family consistently.
 - Use English in-figure text by default for journal-style outputs unless the user or project requires otherwise.
 
@@ -45,7 +46,8 @@ Text, axis labels, legends, and colorbars must remain readable at final output s
 ### 2.3 Colors and scales
 
 - Use scientifically standard colormaps. If the project already has a domain convention, keep it.
-- For map colorbars, use the `cmaps` package by default when it is available and compatible with the project. If `cmaps` is unavailable, use the project's established palette or a scientifically standard `matplotlib` alternative with the same semantics.
+- For map colorbars, use the `cmaps` package by default when it is available and compatible with the project, preferably with discrete color coordinates or levels. If `cmaps` is unavailable, use the project's established palette or a scientifically standard `matplotlib` alternative with the same semantics.
+- Choose colormap style, range, and interval scientifically for the variable and comparison target rather than relying on plotting defaults.
 - Every colorbar must include units.
 - Use scientifically meaningful ticks; avoid meaningless high-precision decimals.
 - Comparable panels should share the same color scale when possible.
