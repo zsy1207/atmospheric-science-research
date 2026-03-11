@@ -1,0 +1,56 @@
+{
+  "skill_name": "atmospheric-science-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我有一组 ERA5 月平均 NetCDF 数据放在 ~/code/data/era5/t2m/ ，想计算 1991-2020 气候态和 2023 年夏季 2 m temperature 距平，输出可复用的中间结果和一张 publication-grade 多面板图。环境里不一定有 h5netcdf 或 cmaps。请先规划再执行，并写中文 README。",
+      "expected_output": "选择 Full 模式，保留 ~/code/data 只读，分离 compute 和 plot，给出中文 README，并在优选依赖缺失时使用明确 fallback 而不是装包。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode and follows Plan -> Execute -> RR.",
+        "Processed outputs are kept out of ~/code/data.",
+        "Compute and plot responsibilities are separated through reusable intermediates.",
+        "The README is written or updated in Chinese.",
+        "Any changed non-figure outputs are validated before plotting by checking saved-file existence and key metadata or value-range summaries.",
+        "When h5netcdf or cmaps is unavailable, the run uses an explicit fallback instead of installing packages."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "这个现有仓库已经有 scripts/diagnostics/ 、 figures/fig03/plot_fig03.py 和 figures/output/fig03.png。不要改科学方法，只把 colorbar label、panel letters 和 spacing 修好，并保留现有目录布局。",
+      "expected_output": "选择 Execute-lite 模式，沿用现有项目结构，只修最小相关代码，重新渲染受影响图后进入 RR，不新建一套默认目录；若路径、输出或图片摘要变化，则在交付时更新现有 README。",
+      "files": [],
+      "expectations": [
+        "The run selects Execute-lite and then continues into RR before handoff.",
+        "The existing project directories are reused instead of creating a new default layout.",
+        "Only the affected preview or delivery figure outputs are re-rendered.",
+        "The actual rendered figure is reviewed after the patch.",
+        "If the patch changes paths, outputs, or the image summary, the existing README is updated at handoff instead of being rewritten."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我已经有 fig5/fig5_map.svg 和 fig5/fig5_map.pdf，请检查图里的投影、colorbar、vector density 和版式。如果只是图面问题就做最小补丁；如果需要改诊断方法且会改变结论，就标成 BLOCKED。",
+      "expected_output": "选择 RR-only 模式，打开真实 SVG/PDF 渲染结果做审查，按最小补丁原则修图，并在需要改变科学方法时返回 BLOCKED。",
+      "files": [],
+      "expectations": [
+        "The run selects RR-only.",
+        "The actual rendered SVG or PDF output is opened and reviewed instead of relying on code alone.",
+        "Visual-only issues are handled with the minimum relevant patch.",
+        "If the scientific method would need to change, the run returns BLOCKED."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "我有一批 ERA5 GRIB 文件放在 ~/code/data/era5/u850/ ，想先快速确认变量、维度和时间覆盖，再计算 2023 年夏季 850 hPa zonal wind anomaly，保存可复用中间结果并输出一张地图。环境里可能没有 cfgrib，也不要中途装包。请先规划再执行，只有会改变科学方法时才问我。",
+      "expected_output": "选择 Full 模式，对 GRIB 先做轻量 metadata 检查；若 cfgrib 不可用则使用环境中已有的轻量 fallback，不中途装包；只在科学歧义时提问，并在出图前验证改动过的非图输出。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode and follows Plan -> Execute -> RR.",
+        "GRIB metadata is inspected with cfgrib when available or another lightweight existing probe when it is not, without installing packages mid-task.",
+        "User questions are asked only if scientific ambiguity would change the method, diagnostic, or interpretation.",
+        "Changed non-figure outputs are validated before plotting."
+      ]
+    }
+  ]
+}
