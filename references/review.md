@@ -6,7 +6,7 @@ Its job is to inspect real figures against `plot-standards.md`, check basic phys
 
 ## RR steps
 
-1. Open the actual output `PNG`, `SVG`, or `PDF` with a local image or PDF viewer. If only `SVG` or `PDF` exists, inspect the rendered page or a lightweight preview, not raw markup. Do not review by code, filename, or directory listing alone. If the figures do not exist yet, render them first.
+1. Open the actual output `PNG` with a local image viewer. Do not review by code, filename, or directory listing alone. If the figures do not exist yet, render them first.
 2. Check them visually against `plot-standards.md`.
    - once a concrete problem is confirmed, do not wait to collect every other issue first
    - move directly into the minimum relevant patch for that problem
