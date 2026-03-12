@@ -6,17 +6,15 @@ Its job is to inspect real figures against `plot-standards.md`, check basic phys
 
 ## RR steps
 
-1. Open the actual output `PNG` with a local image viewer. Do not review by code, filename, or directory listing alone. If the figures do not exist yet, render them first.
+1. Open the actual output `PNG`. Do not review by code, filename, or directory listing alone. If the figures do not exist yet, render them first.
 2. Check them visually against `plot-standards.md`.
    - once a concrete problem is confirmed, do not wait to collect every other issue first
    - move directly into the minimum relevant patch for that problem
-   - keep the patch scoped to the confirmed issue, match the existing style, and avoid opportunistic cleanup
 3. Run a basic physical-sense check:
    - units and variable type match
    - sign, range, main anomaly centers, and gradient directions are not obviously wrong
-   - vector direction, density, and colorbar semantics are reasonable
+   - vector direction, density, and colormap are reasonable
    - diagnostics and statistics implied by the current processed outputs and compute scripts are reasonable
-   - if any upstream diagnostic or processed output changed, confirm the new output files exist and inspect key variables, dimensions, coordinates, units, missing-data behavior, and value range before re-rendering
 4. Classify the issue:
    - visual-only -> `REVISE` and patch only the figure-side plotting code, such as `figN/plot_*.py` or the existing project equivalent
    - data or diagnostic issue -> `REVISE` and patch the affected compute code or upstream processed outputs, plus the corresponding plotting code
@@ -28,11 +26,10 @@ Its job is to inspect real figures against `plot-standards.md`, check basic phys
 ## RR focus
 
 Prioritize these checks:
-- text, ticks, legends, and colorbars do not overlap or get clipped
-- panel labels such as `(a)` and `(b)` are correct
+- text, ticks, legends, and colormap do not overlap or get clipped
+- colormap scale ranges and intervals are scientific, and vector density is reasonable
 - diagnostic and statistical methods are reasonable
 - axis labels, units, and colorbars are complete
-- color scale ranges and intervals are scientific, and vector density is reasonable
 - map projection, coastlines, and boundary strategy are correct
 - the figure is not crowded, misleading, or visually inconsistent
 - the result is clean, readable, and journal-grade

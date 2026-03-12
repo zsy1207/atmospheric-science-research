@@ -3,16 +3,16 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "我有一组 ERA5 月平均 NetCDF 数据放在 ~/code/data/era5/t2m/ ，想计算 1991-2020 气候态和 2023 年夏季 2 m temperature 距平，输出可复用的中间结果和一张 publication-grade 多面板图。环境里不一定有 h5netcdf 或 cmaps。请先规划再执行，并写中文 README。",
-      "expected_output": "选择 Full 模式，保留 ~/code/data 只读，分离 compute 和 plot，给出中文 README，并在优选依赖缺失时使用明确 fallback 而不是装包。",
+      "prompt": "我有一组 ERA5 月平均 NetCDF 数据，想计算 1991-2020 气候态和 2023 年夏季 2 m temperature 距平，输出可复用的中间结果和一张 publication-grade 多面板图。请先规划再执行，并写中文 README。",
+      "expected_output": "选择 Full 模式，分离 compute 和 plot，给出中文 README，并输出一张干净简洁的多面板图，colormap 使用 `cmaps` 的离散坐标或 levels。",
       "files": [],
       "expectations": [
         "The run selects Full mode and follows Plan -> Execute -> RR.",
-        "Processed outputs are kept out of ~/code/data.",
         "Compute and plot responsibilities are separated through reusable intermediates.",
         "The README is written or updated in Chinese.",
         "Any changed non-figure outputs are validated before plotting by checking saved-file existence and key metadata or value-range summaries.",
-        "When h5netcdf or cmaps is unavailable, the run uses an explicit fallback instead of installing packages."
+        "Colormaps use the `cmaps` package with discrete coordinates or levels.",
+        "The figure stays visually clean and avoids irrelevant labels such as `ERA5 monthly mean`."
       ]
     },
     {
@@ -42,12 +42,12 @@
     },
     {
       "id": 4,
-      "prompt": "我有一批 ERA5 GRIB 文件放在 ~/code/data/era5/u850/ ，想先快速确认变量、维度和时间覆盖，再计算 2023 年夏季 850 hPa zonal wind anomaly，保存可复用中间结果并输出一张地图。环境里可能没有 cfgrib，也不要中途装包。请先规划再执行，只有会改变科学方法时才问我。",
-      "expected_output": "选择 Full 模式，对 GRIB 先做轻量 metadata 检查；若 cfgrib 不可用则使用环境中已有的轻量 fallback，不中途装包；只在科学歧义时提问，并在出图前验证改动过的非图输出。",
+      "prompt": "我有一批 ERA5 GRIB 文件，想先快速确认变量、维度和时间覆盖，再计算 2023 年夏季 850 hPa zonal wind anomaly，保存可复用中间结果并输出一张地图。不要中途装包。请先规划再执行，只有会改变科学方法时才问我。",
+      "expected_output": "选择 Full 模式，对 GRIB 先做轻量 metadata 检查；若主路径不可用则使用现有轻量 fallback，不中途装包；只在科学歧义时提问，并在出图前验证改动过的非图输出。",
       "files": [],
       "expectations": [
         "The run selects Full mode and follows Plan -> Execute -> RR.",
-        "GRIB metadata is inspected with cfgrib when available or another lightweight existing probe when it is not, without installing packages mid-task.",
+        "GRIB metadata is inspected with cfgrib or another lightweight existing probe, without installing packages mid-task.",
         "User questions are asked only if scientific ambiguity would change the method, diagnostic, or interpretation.",
         "Changed non-figure outputs are validated before plotting."
       ]
