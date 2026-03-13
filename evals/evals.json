@@ -95,6 +95,50 @@
         "Significant regions are marked with stippling that does not obscure the main signal.",
         "Validation confirms intermediate data files before plotting."
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "我有 ERA5 日平均 OLR 数据，想画一张热带地区(15°S-15°N)沿赤道的经度-时间 Hovmöller 图，时间范围 2023 年全年，用来展示 MJO 的东传信号。请先规划再执行。",
+      "expected_output": "选择 Full 模式，计算赤道带纬向平均 OLR，沿经度和时间维度绘制 Hovmöller 图，使用适合 OLR 的 colormap，时间轴可读。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode.",
+        "OLR is averaged over the tropical latitude band to produce a longitude-time field.",
+        "Hovmöller diagram has longitude on x-axis and time on y-axis (or vice versa).",
+        "Colormap is sequential warm appropriate for OLR (e.g., sunshine_9lev or MPL_YlOrRd).",
+        "Time axis uses human-readable dates, not raw numbers.",
+        "Physical-sense check: MJO eastward propagation signal should be visible in tropical Pacific/Indian Ocean."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "我有 ERA5 月平均 2m 温度数据，请计算全球平均温度的 1950-2024 时间序列，叠加 12 个月滑动平均和线性趋势线（标注趋势值和 p-value），保存中间结果并出图。坐标名称可能是 latitude/longitude 而非 lat/lon。",
+      "expected_output": "选择 Full 模式，面积加权计算全球平均温度时间序列，叠加滑动平均和线性趋势，处理坐标命名不一致问题。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode.",
+        "Coordinate names (latitude/longitude) are normalized to lat/lon before processing.",
+        "Global mean uses area weighting with cos(lat).",
+        "12-month rolling mean is overlaid on the raw time series.",
+        "Linear trend line is plotted with slope (K/decade) and p-value annotated on the figure.",
+        "Time series has a zero-anomaly reference line if plotting anomalies.",
+        "Validation confirms intermediate results before plotting."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "我有三个 CMIP6 模式的月平均 SST 数据（不同空间分辨率），需要统一重网格到 1°×1°，计算三个模式的多模式集合平均（ensemble mean）和模式间标准差，出两张全球图（集合平均 + 模式间离散度）。",
+      "expected_output": "选择 Full 模式，用 xesmf 重网格到统一分辨率，计算 ensemble mean 和 inter-model spread，分两面板出图。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode.",
+        "All three models are regridded to a common 1°×1° grid before averaging.",
+        "Regridding uses xesmf or equivalent conservative/bilinear method.",
+        "Ensemble mean uses a sequential warm SST colormap (e.g., temp_19lev).",
+        "Inter-model standard deviation uses a sequential colormap.",
+        "Coordinate normalization is handled for datasets with different lon conventions.",
+        "Validation confirms regridded files and ensemble statistics before plotting."
+      ]
     }
   ]
 }

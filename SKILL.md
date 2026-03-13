@@ -24,14 +24,27 @@ Choose a mode:
 - `RR-only` — inspect or revise existing figures
 - unclear boundary → `Full`
 
+### Quick signals
+
+| If the request mentions… | → Mode |
+|---|---|
+| New data / new method / new diagnostic / new figure from scratch | `Full` |
+| Add significance test / change diagnostic / switch variable / alter scientific conclusion | `Full` |
+| Fix colorbar / label / font / ticks / spacing / DPI / export format | `Execute-lite` |
+| Same figure, just swap colormap or adjust levels | `Execute-lite` |
+| Review / check / inspect / QC an existing rendered figure | `RR-only` |
+
 ## Reference loader
 
 Load only what the current step needs — never all at once:
-- [references/plan.md](references/plan.md) — planning
-- [references/compute-acceleration.md](references/compute-acceleration.md) — compute, diagnostics, data validation
-- [references/plot-standards.md](references/plot-standards.md) — figure rendering, colormap, layout
-- [references/review.md](references/review.md) — RR loop, physical-sense checks
-- [references/readme-template.md](references/readme-template.md) — README
+
+| Step | Reference |
+|---|---|
+| Plan | [plan.md](references/plan.md), [readme-template.md](references/readme-template.md) |
+| Execute — compute | [compute-acceleration.md](references/compute-acceleration.md) |
+| Execute — plot | [plot-standards.md](references/plot-standards.md) |
+| Validate | §4 checklist below |
+| RR | [review.md](references/review.md), [plot-standards.md](references/plot-standards.md) |
 
 ## 1. Project structure
 
@@ -53,14 +66,33 @@ Split compute and plot when subagents are available:
 - `compute agent` — ingest, validate, preprocess, save intermediates (NetCDF with units and attributes)
 - `plot agent` — read intermediates, render, apply plot standards
 
+Subagent handoff contract:
+- Agree on output path (`data_processed/*.nc`) and variable names before starting.
+- Compute agent saves with documented dimensions, coordinates, units, and `long_name`.
+- Plot agent reads only from the agreed path — no raw data access.
+- If compute fails validation, plot waits.
+
 Otherwise keep the split in separate scripts. Match existing project style when modifying.
 
 ## 4. Validate
 
-Before `RR`, verify outputs:
-- **Data**: reopen saved `.nc`; confirm dimensions, coordinates, units, value range
-- **Figures**: confirm `.png` and `.svg` exist and are non-empty
-- Fix and re-run if anything fails.
+Gate between Execute and RR. Fix and re-run before proceeding.
+
+**Data checks:**
+- Reopen every saved `.nc`; confirm it loads without error
+- Dimensions and coordinates: correct names, sizes, order
+- Units attribute present and physically correct
+- Value range plausible (cross-check with review.md physical-sense table)
+- NaN fraction reasonable; no unexpected all-NaN slices or time steps
+- Time axis decoded correctly (datetime, not raw integers)
+- For multi-file outputs, confirm all expected files exist
+
+**Figure checks:**
+- `.png` and `.svg` exist and file size > 0
+- Open the PNG to verify it renders (use Read tool)
+- No Python warnings or tracebacks during render
+
+Fix and re-run if anything fails. Do not proceed to RR with broken outputs.
 
 ## 5. RR
 
@@ -75,4 +107,8 @@ One `README.md` per project. Write the plan version in `Full` after data inspect
 - Search the web only after local docs fail to resolve formulas, methods, or package usage.
 - When uncertainty remains, stop and ask the user.
 - On failure: read traceback, check common causes (path, coordinate name, dtype), do not retry the same command more than twice, surface the issue if stuck.
+- Failure escalation: if the same error recurs after 2 targeted fixes, step back — recheck data, coordinate names, units, and dtypes from scratch before a third attempt.
+- Coordinate mismatch is the #1 silent-bug source. Always verify `lat`/`latitude`, `lon`/`longitude`, `time` naming and 0–360 vs −180–180 convention match between datasets before merging or comparing.
+- Memory: if a compute step is killed or hangs, reduce chunk size or spatial/temporal subset before retrying.
 - Do not force the full flow for a tiny patch, create extra planning documents, or rewrite working compute code for a figure-only issue.
+- When modifying existing code, preserve the original style (variable naming, import order, comment density).
