@@ -57,6 +57,7 @@ Comparable panels MUST share the same colormap and range unless units differ.
 
 - `fig, axes = plt.subplots(nrows, ncols, subplot_kw={"projection": ...}, constrained_layout=True)`
 - Shared variable + range → one shared colorbar at bottom or right.
+- Every colorbar shows units. Font: DejaVu Sans, 10–12 pt (single) / 8–10 pt (multi), min 7 pt.
 - Panel labels: `ax.text(-0.02, 1.03, "(a)", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`
 
 ## Maps

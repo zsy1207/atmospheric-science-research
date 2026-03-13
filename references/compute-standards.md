@@ -79,7 +79,7 @@ MUST include `units` and `long_name` in attributes. Verify by reopening.
 
 ## Acceleration & efficiency
 
-- **Stay lazy**: no `.load()`, `.compute()`, or `.values` early or inside loops — these force the entire array into memory.
+- **Chunking**: set `chunks="auto"` at open time. NEVER rechunk afterwards — let dask pick the layout once.
 - **Subset first**: select region/time/level before heavy computation. Drop unused variables with `ds = ds[needed_vars]` early.
 - **Vectorize**: use `apply_ufunc` with `dask="parallelized"`, NEVER nested Python loops over grid points.
 - **Faster groupby**: `flox` dramatically speeds up `groupby().mean()` — use `ds.groupby("time.month").mean(method="cohorts")` if available.

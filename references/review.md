@@ -14,7 +14,7 @@ RR is a **figure-focused** review loop. The goal is to catch and fix visual defe
    - No issue → `PASS`.
 5. After `REVISE`: re-render only affected figures, re-open PNG, continue until `PASS` or `BLOCKED`.
 6. If 3 rounds fail on the same issue → reassess approach, do NOT keep patching blindly.
-7. Max 5 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
+7. Max 10 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
 
 ## Quick fixes
 
