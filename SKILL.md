@@ -1,28 +1,16 @@
 ---
 name: atmospheric-science-research
 description: >-
-  Use this skill for file-based atmospheric or climate work that needs a real
-  project structure rather than a one-off answer. Trigger it for NetCDF, GRIB,
-  reanalysis, ERA5, CMIP, WRF, model output, satellite data, EOF or PCA,
-  climatology, anomaly, trend, regression, correlation, composite, teleconnection,
-  vertical cross-section, Hovmöller, or other atmospheric diagnostics when the
-  task involves planning, diagnostics or statistics, regridding, reusable
-  computation, compute-vs-plot separation, publication-grade figures, or
-  review of actual outputs. Also use it for existing atmospheric figure files
-  or small figure-only patches inside an existing atmospheric or climate
-  project when labels, levels, colorbars, legends, panel letters, layout, or
-  exports need fixing without changing the scientific method. Do not use it
-  for forecasts, literature summaries, pure writing, generic plotting outside
-  atmospheric science, app or UI work, deployment, or simple one-step
-  downloads.
+  Use this skill for file-based atmospheric or climate work needing a project
+  structure. Trigger for NetCDF, GRIB, reanalysis (ERA5, CMIP, WRF), satellite
+  data, or model output; for diagnostics such as EOF, climatology, anomaly,
+  trend, regression, correlation, composite, teleconnection, cross-section, or
+  Hovmöller; or for revising existing atmospheric figures (labels, colorbars,
+  legends, panel layout). Do not use for forecasts, literature summaries, pure
+  writing, generic plotting, app or UI work, deployment, or simple downloads.
 ---
 
 # Atmospheric Science Research
-
-Keep the control plane small: choose one mode, load only the needed references, and keep compute separate from plotting.
-
-## Goal
-Create a scientifically rigorous, visually appealing, and informative figure suitable for publication in a top-tier atmospheric science journal.
 
 ## Modes
 
@@ -30,110 +18,61 @@ Create a scientifically rigorous, visually appealing, and informative figure sui
 - `Execute-lite`: `Execute -> Validate -> RR`
 - `RR-only`: `RR`
 
-Choose a mode first:
-- use `Full` for a new project, new dataset, new processing method, or any task that may change the scientific conclusion
-- use `Execute-lite` for a constrained patch to labels, ticks, units, legends, panel letters, colors, levels, spacing, filenames, or export settings; rerender the affected outputs, then continue into `RR`
-- use `RR-only` when the task is to inspect or revise existing figure outputs; stay in `RR` until the result is `PASS` or `BLOCKED`
-- if the science-change boundary is unclear after a light inspection, use `Full`
+Choose a mode:
+- `Full` — new project, new dataset, new method, or anything that may change the scientific conclusion
+- `Execute-lite` — constrained patch (labels, ticks, colors, levels, spacing, export) then rerender
+- `RR-only` — inspect or revise existing figures
+- unclear boundary → `Full`
 
 ## Reference loader
 
-Load only what the current step needs:
-- [references/plan.md](references/plan.md): project planning and the optional single clarification stop
-- [references/compute-acceleration.md](references/compute-acceleration.md): heavy compute, diagnostics, data validation, and reusable outputs
-- [references/plot-standards.md](references/plot-standards.md): figure rendering, colormap selection, layout, export, and rejection checks
-- [references/review.md](references/review.md): `RR` loop, physical-sense checks, outcomes, and minimum-patch revision scope
-- [references/readme-template.md](references/readme-template.md): plan, delivery, and patch-update `README.md`
-
-Do not load every reference file up front.
+Load only what the current step needs — never all at once:
+- [references/plan.md](references/plan.md) — planning
+- [references/compute-acceleration.md](references/compute-acceleration.md) — compute, diagnostics, data validation
+- [references/plot-standards.md](references/plot-standards.md) — figure rendering, colormap, layout
+- [references/review.md](references/review.md) — RR loop, physical-sense checks
+- [references/readme-template.md](references/readme-template.md) — README
 
 ## 1. Project structure
 
-- Use `data_processed/` and `figN/` only when the project has no established layout.
-- Save reusable derived results in the project's processed-data location when one exists; otherwise use `data_processed/`.
-- Keep figure work near the existing figure layout when one exists; otherwise use `figN/`.
+Reuse the project's existing layout. Only fall back to `data_processed/` + `figN/` when no layout exists. Default structure:
+- `data_processed/*.nc` — reusable intermediates
+- `fig1/plot_*.py` — plotting scripts
+- `fig1/compute_*.py` — optional preprocessing
+- `fig1/fig1_*.png`, `fig1/fig1_*.svg` — figure outputs
 
 ## 2. Plan
 
-For the `Plan` step:
-- load [references/plan.md](references/plan.md)
-- load [references/readme-template.md](references/readme-template.md)
-- inspect the data only enough to design the work
-- stop and ask the user if a scientific ambiguity remains
-- write or update a short Chinese `README.md` aligned with the actual project structure
-
+Load [plan.md](references/plan.md) + [readme-template.md](references/readme-template.md). Inspect data only enough to design the work. Ask the user if scientific ambiguity remains. Write a short Chinese `README.md`.
 
 ## 3. Execute
 
-For all computation work:
-- load [references/compute-acceleration.md](references/compute-acceleration.md)
+Load [compute-acceleration.md](references/compute-acceleration.md) for computation, [plot-standards.md](references/plot-standards.md) for figures.
 
-For all figure work:
-- load [references/plot-standards.md](references/plot-standards.md)
+Split compute and plot when subagents are available:
+- `compute agent` — ingest, validate, preprocess, save intermediates (NetCDF with units and attributes)
+- `plot agent` — read intermediates, render, apply plot standards
 
-If subagents are available and the work can be split cleanly, divide it into compute and plot responsibilities:
-- `compute agent`: ingest data, validate, preprocess, run diagnostics, and save reusable outputs
-- `plot agent`: read prepared outputs, render figures, and apply plotting standards
-- integrate their outputs through reusable intermediates (NetCDF files with units and attributes)
+Otherwise keep the split in separate scripts. Match existing project style when modifying.
 
-If subagents are unavailable, keep the same split in separate modules or scripts.
+## 4. Validate
 
-Execution rules:
-- choose the smallest workflow and the simplest defensible implementation that fully answers the scientific task
-- keep heavy computation out of plotting scripts
-- use the minimum code that solves the problem
-- never recompute heavy diagnostics when only figure styling changed
-- save reusable intermediate results once, then reuse them
-- when modifying an existing project, touch only the files, comments, and formatting needed for the task; match the local style
-- for `Execute-lite`, keep the patch and rerender scope to the minimum relevant code and affected outputs
-- when no project structure exists, organize files using this default structure, using `fig1/` as the local example:
-  - processed data in `data_processed/*.nc`
-  - plotting scripts in `fig1/plot_*.py`
-  - optional preprocessing or intermediate computation scripts in `fig1/compute_*.py`
-  - figure outputs in `fig1/fig1_*.png` and `fig1/fig1_*.svg`
+Before `RR`, verify outputs:
+- **Data**: reopen saved `.nc`; confirm dimensions, coordinates, units, value range
+- **Figures**: confirm `.png` and `.svg` exist and are non-empty
+- Fix and re-run if anything fails.
 
-## 4. Validate (gate between Execute and RR)
+## 5. RR
 
-Before entering `RR`, verify that all changed or newly created outputs are correct:
-- **Data outputs**: reopen every saved `.nc` file; confirm it is non-empty, has the expected dimensions, coordinates, units, and a physically reasonable value range
-- **Figure outputs**: confirm every expected `.png` and `.svg` file was created and is non-empty
-- If validation fails, fix the compute or plot script and re-run before entering `RR`
+Load [review.md](references/review.md) + [plot-standards.md](references/plot-standards.md). Open the actual `PNG`, check against standards and physical sense, patch minimum code, repeat until `PASS` or `BLOCKED`.
 
-## 5. RR (`review & revision`)
+## 6. README
 
-For the `RR` step:
-- load [references/review.md](references/review.md)
-- load [references/plot-standards.md](references/plot-standards.md)
-- open and review the actual output `PNG`, not only the code
-- if a figure fails plotting standards or physical-sense checks, patch the minimum relevant code
-- repeat until the result is `PASS` or `BLOCKED`
+One `README.md` per project. Write the plan version in `Full` after data inspection. Update at final handoff if paths, outputs, or image summary changed. For later modifications, append to `后续版本补充` only.
 
-## 6. README follow-through
+## 7. Rules
 
-Use one `README.md` across the project:
-- in `Full`, write the plan version after data inspection and before execution. in `Execute-lite` or `RR-only`, keep the existing `README.md` and update it at final handoff only when paths, outputs, or the image summary changed
-- update the delivery version at final handoff
-- keep the README path section aligned with the actual project directories and outputs
-- for later modifications, append only the new version notes and image summary
-
-## 7. Web and uncertainty rule
-
-Use search only after checking the local code, docs, and project notes when formulas, methods, or package usage remain unclear, or when debugging stalls without enough local evidence.
-
-Just stop and ask the user when the uncertainty and ambiguity remains.
-
-## 8. Error recovery
-
-When a computation or rendering step fails:
-- read the full error traceback before attempting a fix
-- check for common causes first: missing package, wrong path, coordinate name mismatch, data type issue
-- if a package is not installed, inform the user and ask before installing
-- do not retry the same failing command more than twice; diagnose the root cause
-- if debugging stalls after two attempts, surface the issue to the user with the traceback and your analysis
-
-## 9. Keep the control plane minimal
-
-Do not force the full flow for a tiny patch.
-Do not load every reference file up front.
-Do not create extra `QC`, `gate`, `audit`, or planning documents.
-Do not rewrite working compute code for a figure-only issue.
+- Search the web only after local docs fail to resolve formulas, methods, or package usage.
+- When uncertainty remains, stop and ask the user.
+- On failure: read traceback, check common causes (path, coordinate name, dtype), do not retry the same command more than twice, surface the issue if stuck.
+- Do not force the full flow for a tiny patch, create extra planning documents, or rewrite working compute code for a figure-only issue.
