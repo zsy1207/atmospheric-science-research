@@ -1,64 +1,33 @@
-# Review
+# Review & Revision (RR)
 
-`RR` = review & revision. Open real figures, check against plot standards and physical sense, patch minimum code, repeat until `PASS` or `BLOCKED`.
+RR is a **figure-focused** review loop. The goal is to catch and fix visual defects, not to re-audit the science.
 
 ## Steps
 
-1. Open the actual `PNG`. Do not review by code alone. Render first if figures do not exist.
-2. Check visually against `plot-standards.md`. On finding a problem, patch immediately — do not batch.
-3. Run physical-sense checks (below).
+1. **Open actual PNG.** Do NOT review code alone. Render first if figures do not exist.
+2. Check against HARD RULES in SKILL.md and [plot-standards.md](plot-standards.md) quick reject checklist. Patch immediately on finding a problem — do NOT batch multiple issues.
+3. Quick sanity glance: do values, units, sign conventions, and spatial patterns look physically plausible? (e.g., temperature in K not raw integers, precipitation non-negative, cyclonic vorticity sign correct per hemisphere.)
 4. Classify:
-   - visual-only → `REVISE` plotting code only
-   - data/diagnostic issue → `REVISE` compute code + replot
-   - unresolved science → `BLOCKED` — state what needs the user's decision
-   - no issue → `PASS`
-5. After `REVISE`, re-render only affected figures, re-open, and continue until `PASS` or `BLOCKED`.
-6. If 3 rounds fail on the same issue, reassess the approach — do not keep patching blindly.
+   - Visual-only → `REVISE` plotting code only.
+   - Data/diagnostic issue → `REVISE` compute code + replot.
+   - Unresolved science question → `BLOCKED` — state what needs the user's decision.
+   - No issue → `PASS`.
+5. After `REVISE`: re-render only affected figures, re-open PNG, continue until `PASS` or `BLOCKED`.
+6. If 3 rounds fail on the same issue → reassess approach, do NOT keep patching blindly.
+7. Max 5 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
 
-### Exit criteria
+## Quick fixes
 
-- `PASS`: all plot-standards items clear, physical-sense checks pass, no visual defects.
-- `BLOCKED`: the fix requires a scientific decision or method change that only the user can make. State the question clearly.
-- Max 5 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
-
-## Common defects & quick fixes
-
-| Defect | Quick fix |
+| Defect | Fix |
 |---|---|
-| Colorbar text overlaps axis | Move colorbar: `shrink=0.8`, `pad=0.08`, or switch `orientation` |
-| Panel labels `(a)` clip at edge | Use `ax.text(-0.02, 1.03, ...)` with `transform=ax.transAxes`, not `ax.set_title` |
-| White seam at 180° on global map | Add `transform=ccrs.PlateCarree()` to plot call; use `ax.set_global()` |
-| Tick labels overlap on small panels | Reduce font size; use `MaxNLocator(nbins=5)` or `mticker.FixedLocator` |
-| Faint stippling invisible in print | Increase marker size or switch to hatching: `hatches=["..."]` |
-| Legend obscures data | `ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1))` outside axes |
-| Colorbar range too wide (washed out) | Tighten `levels` to the 2nd–98th percentile of the data |
-| Quiver arrows too dense | Increase skip: `Q = ax.quiver(lon[::n], lat[::n], u[::n,::n], v[::n,::n])` |
-| Subplot spacing too tight | `fig.set_constrained_layout_pads(hspace=0.08, wspace=0.08)` |
-
-## Physical-sense checks
-
-General: units match labels/colorbar, sign convention correct, value range reasonable, no artifacts (stripes, checkerboard, unexpected NaN), land/ocean masking correct.
-
-| Variable | Key checks |
-|---|---|
-| Temperature | K (200–320) or °C (−70–+50); anomaly ±0.5–10 K |
-| Precipitation | Non-negative; wet regions (ITCZ, storm tracks) in expected locations |
-| Wind | Speed 0–80 m/s; jet 30–70 m/s at 200 hPa; surface < 25 m/s climatology |
-| Geopotential | Smooth; ~5500 m at 500 hPa mid-lat; equator-to-pole gradient |
-| SST | −2 to +35°C; warm pool and cold tongue in correct locations |
-| MSLP | 960–1050 hPa; lows in storm tracks, highs in subtropics |
-| OLR | 100–300 W/m²; low over deep convection, high over deserts |
-| Vorticity | Cyclonic sign matches hemisphere (negative NH, positive SH) |
-| EOF | Leading mode matches known patterns (e.g., ENSO for tropical Pacific SST) |
-| Relative humidity | 0–100%; high near ITCZ and frontal zones |
-| Vertical velocity (omega) | Negative = upward (Pa/s); −1 to +1 Pa/s typical; strong upward in convective regions |
-| Cloud cover | 0–1 or 0–100%; high over ITCZ, storm tracks, stratus decks |
-| Soil moisture | Non-negative; dry in deserts, wet in tropics |
-
-Vector fields: direction physically plausible, no single wildly large arrow, reference arrow labeled with units.
-
-### Season and region sanity
-
-- NH summer (JJA): ITCZ shifted north, monsoon active, jet stream weakened and poleward.
-- NH winter (DJF): strong jet, deep Aleutian/Icelandic lows, subtropical highs weaker.
-- Anomaly sign should be consistent with known modes (e.g., El Niño → warm Niño 3.4, positive SOI → La Niña).
+| Colorbar overlaps axis | `shrink=0.8`, `pad=0.08`, or switch `orientation` |
+| Panel label clips | `ax.text(-0.02, 1.03, ...)` with `transform=ax.transAxes` |
+| White seam at 180° | Add `transform=ccrs.PlateCarree()`, use `ax.set_global()` |
+| Ticks overlap | Reduce font; `MaxNLocator(nbins=5)` or `FixedLocator` |
+| Stippling invisible | Increase marker size or switch to `hatches=["..."]` |
+| Stippling too dense (solid black patches) | Increase subsampling `[::4]` or reduce marker size; high-res data needs more skipping |
+| Legend obscures data | `bbox_to_anchor=(1.02, 1)` outside axes |
+| Colorbar washed out | Tighten `levels` to 2nd–98th percentile |
+| Quiver too dense or sparse | Adjust skip: 1° → 3–5, 0.25° → 8–15, 2.5° → 1–2; larger domain needs more skipping |
+| Quiver key wrong position or bad magnitude | Move to lower-right inside axes: `ax.quiverkey(Q, 0.92, 0.08, ref_val, ...)`. Ref magnitude = round number near **median** speed, not max |
+| Subplots too tight | `constrained_layout_pads(hspace=0.08, wspace=0.08)` |

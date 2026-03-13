@@ -1,4 +1,0 @@
-interface:
-  display_name: "Atmospheric Science Research"
-  short_description: "Atmospheric/climate research and figure revision"
-  default_prompt: "Use $atmospheric-science-research for file-based atmospheric or climate analysis needing a project structure. Choose Full (Plan -> Execute -> Validate -> RR), Execute-lite (Execute -> Validate -> RR), or RR-only as appropriate. Split compute from plotting, validate outputs before RR, select cmaps colormaps from the variable-to-colormap table with discrete levels, run physical-sense checks, and review actual rendered figures before handoff."
