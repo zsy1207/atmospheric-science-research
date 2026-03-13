@@ -25,7 +25,7 @@ Define the execution path, not the implementation.
    - prefer multiple-choice when helpful
    - if the scientific path is already clear, continue directly to `Execute`
    - prefer a single clarification stop; if the first answer still leaves a real scientific ambiguity, keep any follow-up narrowly focused on unblocking the method
-5. Write or update a short Chinese `README.md` with [references/readme-template.md](references/readme-template.md).
+5. Write or update a short Chinese `README.md` with [readme-template.md](readme-template.md).
 
 ## Plan rules
 

@@ -7,11 +7,11 @@
       "expected_output": "选择 Full 模式，分离 compute 和 plot，给出中文 README，并输出一张干净简洁的多面板图，colormap 使用 `cmaps` 的离散坐标或 levels。",
       "files": [],
       "expectations": [
-        "The run selects Full mode and follows Plan -> Execute -> RR.",
+        "The run selects Full mode and follows Plan -> Execute -> Validate -> RR.",
         "Compute and plot responsibilities are separated through reusable intermediates.",
         "The README is written or updated in Chinese.",
-        "Any changed non-figure outputs are validated before plotting by checking saved-file existence and key metadata or value-range summaries.",
-        "Colormaps use the `cmaps` package with discrete coordinates or levels.",
+        "Data validation is performed after saving intermediate results: file existence, dimensions, units, and value range.",
+        "Colormaps use the `cmaps` package with discrete coordinates or levels, selected from the variable-to-colormap table (e.g., temp_diff_18lev or BlueWhiteOrangeRed for temperature anomaly).",
         "The figure stays visually clean and avoids irrelevant labels such as `ERA5 monthly mean`."
       ]
     },
@@ -46,10 +46,54 @@
       "expected_output": "选择 Full 模式，对 GRIB 先做轻量 metadata 检查；若主路径不可用则使用现有轻量 fallback，不中途装包；只在科学歧义时提问，并在出图前验证改动过的非图输出。",
       "files": [],
       "expectations": [
-        "The run selects Full mode and follows Plan -> Execute -> RR.",
+        "The run selects Full mode and follows Plan -> Execute -> Validate -> RR.",
         "GRIB metadata is inspected with cfgrib or another lightweight existing probe, without installing packages mid-task.",
         "User questions are asked only if scientific ambiguity would change the method, diagnostic, or interpretation.",
-        "Changed non-figure outputs are validated before plotting."
+        "Changed non-figure outputs are validated before plotting.",
+        "Wind anomaly colormap uses a diverging colormap centered at 0 (e.g., NCV_blu_red or BlWhRe)."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "我有 ERA5 月平均海表温度(SST) NetCDF 数据，想做热带太平洋 SST 的 EOF 分析，提取前 3 个模态及对应的 PC 时间序列，保存中间结果并出一组四面板图(EOF1 空间模态 + PC1 时序、EOF2 + PC2)。",
+      "expected_output": "选择 Full 模式，使用 eofs 包做 EOF 分析，面积加权(cos(lat))，保存 EOF 模态和 PC 时间序列为中间结果，出图时 EOF 模态用 diverging colormap，PC 时间序列为折线图。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode.",
+        "EOF analysis uses area weighting with cos(lat).",
+        "Intermediate results (EOFs, PCs, variance fractions) are saved as reusable NetCDF files.",
+        "EOF spatial patterns use a diverging colormap centered at 0.",
+        "PC time series are plotted as line plots with a zero reference line.",
+        "Leading EOF mode is checked against known ENSO pattern for physical sense.",
+        "Validation gate confirms saved intermediate files before plotting."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "用 ERA5 再分析数据画一张沿 120°E 的温度和风场纬度-气压垂直剖面图，从地面到 100 hPa，范围 0-60°N。要求有填色的温度场和叠加的风矢量(v, w)。",
+      "expected_output": "选择 Full 或 Execute-lite 模式，提取 120°E 经向剖面数据，温度用 sequential colormap 填色，风矢量叠加其上，y 轴为气压坐标(倒置)。",
+      "files": [],
+      "expectations": [
+        "Temperature is plotted as filled contours with a sequential warm colormap from cmaps.",
+        "Wind vectors (v, w) are overlaid with appropriate scaling (w component scaled due to pressure coordinates).",
+        "Y-axis is pressure in hPa, inverted (1000 at bottom, 100 at top).",
+        "X-axis is latitude from 0° to 60°N.",
+        "Colorbar has units (K or °C).",
+        "Reference arrow for wind vectors is labeled with units."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "我有两组模式输出(CMIP6 historical 和 SSP585)，都是月平均降水 NetCDF。请计算两组的 1995-2014 气候态差异(SSP585 未来30年减去 historical)，做显著性检验(t-test)，出一张全球地图，标注显著区域。",
+      "expected_output": "选择 Full 模式，计算气候态差异和 t-test 显著性，出图用 diverging precipitation colormap，显著区域用 stippling 标注，不遮挡主信号。",
+      "files": [],
+      "expectations": [
+        "The run selects Full mode.",
+        "Climatological difference is computed correctly between the two datasets.",
+        "Significance testing uses scipy t-test with appropriate sample sizes.",
+        "The difference map uses a diverging precipitation colormap (e.g., precip_diff_12lev or CBR_drywet).",
+        "Significant regions are marked with stippling that does not obscure the main signal.",
+        "Validation confirms intermediate data files before plotting."
       ]
     }
   ]

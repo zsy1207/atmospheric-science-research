@@ -1,10 +1,11 @@
 ---
 name: atmospheric-science-research
 description: >-
-  Use this skill for file-based atmospheric or climate work with a real
+  Use this skill for file-based atmospheric or climate work that needs a real
   project structure rather than a one-off answer. Trigger it for NetCDF, GRIB,
-  reanalysis, ERA5, CMIP, WRF, model output, EOF or PCA, climatology,
-  anomaly, regression, composite, or other atmospheric diagnostics when the
+  reanalysis, ERA5, CMIP, WRF, model output, satellite data, EOF or PCA,
+  climatology, anomaly, trend, regression, correlation, composite, teleconnection,
+  vertical cross-section, Hovmöller, or other atmospheric diagnostics when the
   task involves planning, diagnostics or statistics, regridding, reusable
   computation, compute-vs-plot separation, publication-grade figures, or
   review of actual outputs. Also use it for existing atmospheric figure files
@@ -25,8 +26,8 @@ Create a scientifically rigorous, visually appealing, and informative figure sui
 
 ## Modes
 
-- `Full`: `Plan -> Execute -> RR`
-- `Execute-lite`: `Execute -> RR`
+- `Full`: `Plan -> Execute -> Validate -> RR`
+- `Execute-lite`: `Execute -> Validate -> RR`
 - `RR-only`: `RR`
 
 Choose a mode first:
@@ -39,9 +40,9 @@ Choose a mode first:
 
 Load only what the current step needs:
 - [references/plan.md](references/plan.md): project planning and the optional single clarification stop
-- [references/compute-acceleration.md](references/compute-acceleration.md): heavy compute, diagnostics, and reusable outputs
-- [references/plot-standards.md](references/plot-standards.md): figure rendering, layout, export, and rejection checks
-- [references/review.md](references/review.md): `RR` loop, outcomes, and minimum-patch revision scope
+- [references/compute-acceleration.md](references/compute-acceleration.md): heavy compute, diagnostics, data validation, and reusable outputs
+- [references/plot-standards.md](references/plot-standards.md): figure rendering, colormap selection, layout, export, and rejection checks
+- [references/review.md](references/review.md): `RR` loop, physical-sense checks, outcomes, and minimum-patch revision scope
 - [references/readme-template.md](references/readme-template.md): plan, delivery, and patch-update `README.md`
 
 Do not load every reference file up front.
@@ -71,9 +72,9 @@ For all figure work:
 - load [references/plot-standards.md](references/plot-standards.md)
 
 If subagents are available and the work can be split cleanly, divide it into compute and plot responsibilities:
-- `compute agent`: ingest data, preprocess, run diagnostics, and save reusable outputs
+- `compute agent`: ingest data, validate, preprocess, run diagnostics, and save reusable outputs
 - `plot agent`: read prepared outputs, render figures, and apply plotting standards
-- integrate their outputs through reusable intermediates
+- integrate their outputs through reusable intermediates (NetCDF files with units and attributes)
 
 If subagents are unavailable, keep the same split in separate modules or scripts.
 
@@ -91,16 +92,23 @@ Execution rules:
   - optional preprocessing or intermediate computation scripts in `fig1/compute_*.py`
   - figure outputs in `fig1/fig1_*.png` and `fig1/fig1_*.svg`
 
-## 4. RR (`review & revision`)
+## 4. Validate (gate between Execute and RR)
+
+Before entering `RR`, verify that all changed or newly created outputs are correct:
+- **Data outputs**: reopen every saved `.nc` file; confirm it is non-empty, has the expected dimensions, coordinates, units, and a physically reasonable value range
+- **Figure outputs**: confirm every expected `.png` and `.svg` file was created and is non-empty
+- If validation fails, fix the compute or plot script and re-run before entering `RR`
+
+## 5. RR (`review & revision`)
 
 For the `RR` step:
 - load [references/review.md](references/review.md)
 - load [references/plot-standards.md](references/plot-standards.md)
 - open and review the actual output `PNG`, not only the code
-- if a figure fails plotting standards or obvious physical-sense checks, patch the minimum relevant code
+- if a figure fails plotting standards or physical-sense checks, patch the minimum relevant code
 - repeat until the result is `PASS` or `BLOCKED`
 
-## 5. README follow-through
+## 6. README follow-through
 
 Use one `README.md` across the project:
 - in `Full`, write the plan version after data inspection and before execution. in `Execute-lite` or `RR-only`, keep the existing `README.md` and update it at final handoff only when paths, outputs, or the image summary changed
@@ -108,13 +116,22 @@ Use one `README.md` across the project:
 - keep the README path section aligned with the actual project directories and outputs
 - for later modifications, append only the new version notes and image summary
 
-## 6. Web and uncertainty rule
+## 7. Web and uncertainty rule
 
 Use search only after checking the local code, docs, and project notes when formulas, methods, or package usage remain unclear, or when debugging stalls without enough local evidence.
 
 Just stop and ask the user when the uncertainty and ambiguity remains.
 
-## 7. Keep the control plane minimal
+## 8. Error recovery
+
+When a computation or rendering step fails:
+- read the full error traceback before attempting a fix
+- check for common causes first: missing package, wrong path, coordinate name mismatch, data type issue
+- if a package is not installed, inform the user and ask before installing
+- do not retry the same failing command more than twice; diagnose the root cause
+- if debugging stalls after two attempts, surface the issue to the user with the traceback and your analysis
+
+## 9. Keep the control plane minimal
 
 Do not force the full flow for a tiny patch.
 Do not load every reference file up front.
