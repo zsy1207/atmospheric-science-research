@@ -51,6 +51,7 @@ Use these only when the task needs them and they already fit the project stack:
 - `metpy` for thermodynamic and atmospheric diagnostics
 - `eofs` for EOF or PCA workflows
 - `xesmf` for regridding
+- `zarr` for outputs data
 Prefer `scipy` for interpolation, filtering, statistical tests, regression, and correlation.
 
 
