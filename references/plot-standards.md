@@ -65,16 +65,23 @@ Comparable panels MUST share the same colormap and range unless units differ.
 - Coastlines by default. National borders ONLY if requested.
 - Vectors: density must make individual arrows distinguishable yet reveal spatial structure — no visual clutter, no empty patches.
   - 1° data → skip 3–5 pts; 0.25° data → skip 8–15 pts; 2.5° data → skip 1–2 pts. Adjust by domain size: larger domain needs more skipping.
-  - Quiver key (reference arrow) placement: **inside lower-right of the axes**, with a semi-transparent background box for readability.
+  - Quiver key (reference arrow + label): place inside a **white opaque box flush against the lower-right border** of the axes. Arrow size must be proportionate — fits inside the box without overflow.
   - Reference magnitude: choose a round number near the **median** wind speed in the plot (not the max). E.g., if typical values are 5–15 m/s, use `10 m/s`; if 0.5–3 m/s, use `2 m/s`.
 
 ```python
 n = 5  # adjust skip based on resolution and domain
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), scale=200, width=0.003)
-ax.quiverkey(Q, 0.92, 0.08, 10, "10 m/s", labelpos="S",
-             coordinates="axes", fontproperties={"size": 9},
-             labelsep=0.05, zorder=10)
+# White box flush against lower-right corner
+import matplotlib.patches as mpatches
+rect = mpatches.FancyBboxPatch(
+    (0.84, 0.0), 0.16, 0.1, transform=ax.transAxes,
+    facecolor="white", edgecolor="k", linewidth=0.5,
+    zorder=9, boxstyle="square,pad=0.01")
+ax.add_patch(rect)
+qk = ax.quiverkey(Q, 0.92, 0.04, 10, "10 m/s", labelpos="S",
+                  coordinates="axes", fontproperties={"size": 9},
+                  labelsep=0.05, zorder=10)
 ```
 
 - Significance stippling — density must make significant regions identifiable without obscuring the fill beneath:

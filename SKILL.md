@@ -72,7 +72,7 @@ Read from saved intermediates, not raw data.
 - **Panel labels**: `ax.text(-0.02, 1.03, "(a) subtitle", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`.
 - **Colorbar**: must show units. Font: DejaVu Sans, 10–12 pt (single) / 8–10 pt (multi), min 7 pt.
 - **Contour lines**: do NOT add on `contourf` unless they convey extra information (e.g. geopotential contours over temperature fill).
-- **Vectors**: skip by resolution (1°→3–5, 0.25°→8–15, 2.5°→1–2; larger domain → more skip). Quiver key inside lower-right with semi-transparent box; ref magnitude = round number near **median** speed, not max. Full spec in [plot-standards.md](references/plot-standards.md).
+- **Vectors**: skip by resolution (1°→3–5, 0.25°→8–15, 2.5°→1–2; larger domain → more skip). Quiver key: arrow + label in **white opaque box flush against lower-right border**; arrow sized to fit inside box; ref magnitude = round number near **median** speed, not max. Full spec in [plot-standards.md](references/plot-standards.md).
 - **Stippling**: sparse enough to identify significant regions without obscuring fill. Hatching `"..."` or scatter `[::3]`, size 0.3–1.0, alpha 0.4–0.6. High-res (< 0.5°) needs more subsampling. Full spec in [plot-standards.md](references/plot-standards.md).
 - **Export**: PNG 600 dpi + SVG, `bbox_inches="tight"`.
 
