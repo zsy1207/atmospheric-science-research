@@ -47,7 +47,7 @@ These rules exist because atmospheric science figures follow strict domain conve
 
 8. **No environment checks** — All packages are pre-installed. Running `pip install`, `conda install`, import-checks, or version-probes wastes time and risks errors. Start coding directly.
 
-9. **Load reference files before writing code** — Reference files contain battle-tested patterns. Load [compute-standards.md](references/compute-standards.md) before compute code and [plot-standards.md](references/plot-standards.md) before plot code. These patterns are canonical — use them, don't improvise alternatives.
+9. **Load [plot-standards.md](references/plot-standards.md) before writing plot code** — it contains colormap tables, vector specs, and the quick reject checklist.
 
 ## Workflow
 
@@ -65,10 +65,11 @@ Understand the data first (variables, dims, coords, units), then execute. Pick i
 
 Split into compute + plot. Use subagents when available — agree on output path and variable names first; plot waits if compute fails. Fix and re-run on failure; do NOT enter RR with broken outputs.
 
-### Compute — load [compute-standards.md](references/compute-standards.md) first
+### Compute
 
 - Normalize coordinates first (rename `latitude`→`lat`, handle lon convention, ensure lat south→north).
 - Save intermediates to `data_processed/*.nc` with `units` and `long_name` attributes.
+- **Performance**: subset region/time/level before heavy ops; never loop over grid points (`apply_ufunc` + `dask="parallelized"`); stay lazy — delay `.compute()` until the final step; build `xesmf.Regridder` once and reuse.
 
 ### Plot — load [plot-standards.md](references/plot-standards.md) first
 
