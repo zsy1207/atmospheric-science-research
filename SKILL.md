@@ -1,18 +1,17 @@
 ---
 name: atmospheric-science-research
 description: >-
-  Use this skill for file-based atmospheric or climate work that needs a real
-  project structure rather than a one-off answer. Trigger it for NetCDF, GRIB,
-  reanalysis (ERA5, JRA-55, MERRA-2), model output (CMIP, WRF, GFS), station
-  observations, or existing atmospheric figure files when the task involves
-  diagnostics or statistics, regridding, reusable computation,
-  compute-vs-plot separation, publication-grade figures, or review of actual
-  outputs. Also use it for small figure-only patches inside an existing
-  atmospheric project when labels, levels, colorbars, legends, panel letters,
-  layout, or exports need fixing without changing the scientific method.
-  Do not use it for forecasts, literature summaries, pure writing, generic
-  plotting outside atmospheric science, app or UI work, deployment, or
-  simple one-step downloads.
+  Handles file-based atmospheric and climate science workflows that need a
+  real project structure rather than a one-off answer — processing
+  NetCDF/GRIB data (ERA5, JRA-55, MERRA-2, CMIP, WRF, GFS, station obs)
+  or existing atmospheric figure files for diagnostics, statistics,
+  regridding, reusable computation, and publication-grade figure generation
+  with compute-plot separation. Also handles figure-only patches (labels,
+  levels, colorbars, legends, panel letters, layout, exports) and review of
+  rendered outputs in existing atmospheric projects. Do not use for
+  forecasts, literature summaries, pure writing, generic plotting outside
+  atmospheric science, app or UI work, deployment, or simple one-step
+  downloads.
 ---
 
 # Atmospheric Science Research
