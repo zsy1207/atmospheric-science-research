@@ -30,6 +30,9 @@ State assumptions explicitly. If uncertain or multiple interpretations exist —
 5. **Separate compute from plot**: different scripts. Figure-only patches never touch compute.
 6. **Coordinate normalization**: verify naming (`lat`/`latitude`, `lon`/`longitude`) and convention (0–360 vs −180/180) BEFORE any merge, comparison, or plot.
 
+7. **No environment checks**: NEVER run `pip list`, `conda list`, `pip install`, version checks, or any environment-probing commands. Assume all packages listed in the references are available. If a runtime ImportError occurs, surface it to the user — do NOT attempt to install or diagnose packages.
+8. **Reference files are binding**: the `references/` directory contains mandatory standards. Every instruction, pattern, and rule in those files MUST be followed exactly. They are not suggestions — they are specifications. Violation of any reference rule is treated the same as violating a HARD RULE.
+
 ## Workflow
 
 Understand the data first (variables, dims, coords, units), then execute. Pick initial levels from domain knowledge — refine in the RR loop, not by profiling beforehand.
@@ -46,12 +49,13 @@ Understand the data first (variables, dims, coords, units), then execute. Pick i
 
 Split into compute + plot. Use subagents when available — agree on output path and variable names first; plot waits if compute fails. Fix and re-run on failure; do NOT enter RR with broken outputs.
 
-### Compute — read [compute-standards.md](references/compute-standards.md) first
+### Compute — MUST read [compute-standards.md](references/compute-standards.md) first and follow every rule
 
+- ALWAYS use `engine="h5netcdf"`, `chunks="auto"` when opening NetCDF. See reference for exact signatures.
 - Normalize coordinates first (rename `latitude`→`lat`, handle lon convention, ensure lat south→north).
 - Save intermediates to `data_processed/*.nc` with `units` and `long_name` attributes.
 
-### Plot — read [plot-standards.md](references/plot-standards.md) first
+### Plot — MUST read [plot-standards.md](references/plot-standards.md) first and follow every rule
 
 Read from saved intermediates, not raw data.
 
@@ -86,7 +90,7 @@ Read from saved intermediates, not raw data.
 
 ## RR — Review & Revision Loop
 
-Read [review.md](references/review.md) + [plot-standards.md](references/plot-standards.md) before starting.
+MUST read [review.md](references/review.md) + [plot-standards.md](references/plot-standards.md) **in full** before starting. Use them as your checklist — every item applies.
 
 **Loop until PASS or BLOCKED.**
 
@@ -106,7 +110,7 @@ Each iteration:
 
 ## Documentation — after RR reaches PASS
 
-Read [readme-template.md](references/readme-template.md). Write or update a Chinese `README.md`:
+MUST read [readme-template.md](references/readme-template.md) **in full** and follow the template exactly. Write or update a Chinese `README.md`:
 - New project → full README.
 - Later modifications → append to「版本更新」, update affected sections only.
 
