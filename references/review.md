@@ -34,7 +34,7 @@ RR is a **figure-focused** review loop. The goal is to catch and fix visual defe
 | Legend obscures data | `bbox_to_anchor=(1.02, 1)` outside axes |
 | Colorbar washed out | Tighten `levels` to 2nd–98th percentile of the data range |
 | Quiver too dense or sparse | Adjust skip: 1° → 3–5, 0.25° → 8–15, 2.5° → 1–2; larger domain needs more |
-| Quiver key bad position or magnitude | White opaque box flush against lower-right: `FancyBboxPatch((0.84,0.0),0.16,0.1,...)` + `quiverkey(Q, 0.92, 0.04, ref_val, ...)`. Ref magnitude = round number near **median** speed |
+| Quiver key bad position or magnitude | Place outside axes at top-left: `quiverkey(Q, 0.0, 1.04, ref_val, "X m/s", labelpos="E", coordinates="axes")`. Ref magnitude = round number near **median** speed |
 | Subplots too tight | `constrained_layout_pads(hspace=0.08, wspace=0.08)` |
 | Gridline labels overlap at edges | `gl.top_labels = False; gl.right_labels = False` |
 | Anomaly not centered at 0 | Use symmetric `levels`: e.g., `np.arange(-5, 5.5, 0.5)` with diverging cmap |

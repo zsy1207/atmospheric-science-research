@@ -2,10 +2,10 @@
 
 ## Colormap Rules
 
-ALL colormaps come from `import cmaps` with discrete `levels`. Never use continuous interpolation. Never use `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these distort data perception and are not accepted in atmospheric science publications.
+Colormaps from `import cmaps` with discrete `levels`. Avoid `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these distort data perception.
 
 **Principles**:
-- Absolute fields → sequential cmap (low=light, high=dark)
+- Absolute fields → sequential cmaps (low=light, high=dark)
 - Anomaly / difference → diverging cmap, symmetric around 0 (center=white or neutral)
 - Comparable panels share the same cmap and range unless units differ
 
@@ -48,7 +48,7 @@ Choose projections that minimize distortion for the study region.
 
 ## Figure Sizing
 
-Appropriately sized figures prevent cramped labels and wasted whitespace.
+Suggested sizes — adjust as needed for content and layout.
 
 | Layout | `figsize` (inches) |
 |---|---|
@@ -66,34 +66,28 @@ Appropriately sized figures prevent cramped labels and wasted whitespace.
 
 - `fig, axes = plt.subplots(nrows, ncols, subplot_kw={"projection": ...}, constrained_layout=True)`
 - Shared variable + range → one shared colorbar at bottom or right.
-- Every colorbar shows units. Font: DejaVu Sans, 10–12 pt (single) / 8–10 pt (multi), min 7 pt.
+- Colorbar with units. Font readable at print size, min 7 pt.
 - Panel labels: `ax.text(-0.02, 1.03, "(a)", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`
 
 ## Maps
 
-- Coastlines by default. National borders ONLY if requested.
+- Coastlines by default. National borders if relevant to the study.
 - Gridlines: `gl = ax.gridlines(draw_labels=True, linewidth=0.5, alpha=0.5, linestyle="--")` + `gl.top_labels = False; gl.right_labels = False`. Tick font 8–10 pt.
 
 ### Vectors (wind, currents)
 
-The goal is individual arrows distinguishable yet revealing spatial structure — no visual clutter, no empty patches.
+Individual arrows should be distinguishable and reveal spatial structure — no clutter, no empty patches.
 
 - **Skip factors** (by data resolution): 1° → skip 3–5 pts; 0.25° → skip 8–15 pts; 2.5° → skip 1–2 pts. Larger domains need more skipping.
-- **Reference magnitude**: pick a round number near the **median** speed in the plotted data (not the max). E.g., typical 5–15 m/s → use `10 m/s`; typical 0.5–3 m/s → use `2 m/s`.
-- **Quiver key**: arrow + label inside a **white opaque box flush against the lower-right border** of the axes. Arrow must fit inside the box.
+- **Reference magnitude**: round number near the **median** speed (not the max). E.g., typical 5–15 m/s → `10 m/s`.
+- **Quiver key**: reference arrow placed **outside the axes at top-left, aligned with panel labels**. No background box needed.
 
 ```python
 n = 5  # adjust skip based on resolution and domain size
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), scale=200, width=0.003)
-# White box flush against lower-right corner
-import matplotlib.patches as mpatches
-rect = mpatches.FancyBboxPatch(
-    (0.84, 0.0), 0.16, 0.1, transform=ax.transAxes,
-    facecolor="white", edgecolor="k", linewidth=0.5,
-    zorder=9, boxstyle="square,pad=0.01")
-ax.add_patch(rect)
-qk = ax.quiverkey(Q, 0.92, 0.04, 10, "10 m/s", labelpos="S",
+# Reference arrow outside axes, top-left, aligned with panel labels
+qk = ax.quiverkey(Q, 0.0, 1.04, 10, "10 m/s", labelpos="E",
                   coordinates="axes", fontproperties={"size": 9},
                   labelsep=0.05, zorder=10)
 ```
@@ -134,7 +128,7 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 
 ## Quick Reject Checklist
 
-Revise IMMEDIATELY if any is true — these are the most common problems that make figures unpublishable:
+Revise if any is true — common problems that make figures unpublishable:
 
 | Category | Defect |
 |---|---|
@@ -147,7 +141,7 @@ Revise IMMEDIATELY if any is true — these are the most common problems that ma
 | **Geography** | Wrong projection for region; missing coastlines |
 | | White gaps or seams at dateline or plot boundary |
 | **Vectors** | Density inappropriate (too dense to distinguish or too sparse to see structure) |
-| | Quiver key missing, unlabeled, or not inside white box at lower-right |
+| | Quiver key missing, unlabeled, or poorly positioned |
 | **Stippling** | Obscures the main signal or is invisible at print resolution |
 | **Contours** | Redundant contour lines on `contourf` without added information |
 | **Layout** | Legend outside visible area or occluding data |
