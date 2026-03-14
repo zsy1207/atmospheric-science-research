@@ -1,8 +1,13 @@
 # Plot Standards
 
-## Colormap table
+## Colormap Rules
 
-ALL colormaps MUST come from `import cmaps` with discrete `levels`. NEVER continuous interpolation. NEVER `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet`.
+ALL colormaps come from `import cmaps` with discrete `levels`. Never use continuous interpolation. Never use `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these distort data perception and are not accepted in atmospheric science publications.
+
+**Principles**:
+- Absolute fields → sequential cmap (low=light, high=dark)
+- Anomaly / difference → diverging cmap, symmetric around 0 (center=white or neutral)
+- Comparable panels share the same cmap and range unless units differ
 
 | Variable / context | Style | Recommended `cmaps` | Notes |
 |---|---|---|---|
@@ -29,9 +34,9 @@ ALL colormaps MUST come from `import cmaps` with discrete `levels`. NEVER contin
 | Generic anomaly | Diverging | `BlueWhiteOrangeRed`, `BlWhRe`, `NCV_blu_red` | Center 0 |
 | Generic absolute | Sequential | `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | |
 
-Comparable panels MUST share the same colormap and range unless units differ.
-
 ## Projections
+
+Choose projections that minimize distortion for the study region.
 
 | Region | Projection |
 |---|---|
@@ -41,7 +46,9 @@ Comparable panels MUST share the same colormap and range unless units differ.
 | Polar | `NorthPolarStereo` / `SouthPolarStereo` |
 | Pacific-centered | `PlateCarree(central_longitude=180)` |
 
-## Figure sizing
+## Figure Sizing
+
+Appropriately sized figures prevent cramped labels and wasted whitespace.
 
 | Layout | `figsize` (inches) |
 |---|---|
@@ -55,7 +62,7 @@ Comparable panels MUST share the same colormap and range unless units differ.
 | 6-panel | (16, 10)–(18, 12) |
 | Map + time series | (10, 8)–(12, 10) |
 
-## Multi-panel
+## Multi-panel Layout
 
 - `fig, axes = plt.subplots(nrows, ncols, subplot_kw={"projection": ...}, constrained_layout=True)`
 - Shared variable + range → one shared colorbar at bottom or right.
@@ -66,13 +73,17 @@ Comparable panels MUST share the same colormap and range unless units differ.
 
 - Coastlines by default. National borders ONLY if requested.
 - Gridlines: `gl = ax.gridlines(draw_labels=True, linewidth=0.5, alpha=0.5, linestyle="--")` + `gl.top_labels = False; gl.right_labels = False`. Tick font 8–10 pt.
-- Vectors: density must make individual arrows distinguishable yet reveal spatial structure — no visual clutter, no empty patches.
-  - 1° data → skip 3–5 pts; 0.25° data → skip 8–15 pts; 2.5° data → skip 1–2 pts. Adjust by domain size: larger domain needs more skipping.
-  - Quiver key (reference arrow + label): place inside a **white opaque box flush against the lower-right border** of the axes. Arrow size must be proportionate — fits inside the box without overflow.
-  - Reference magnitude: choose a round number near the **median** wind speed in the plot (not the max). E.g., if typical values are 5–15 m/s, use `10 m/s`; if 0.5–3 m/s, use `2 m/s`.
+
+### Vectors (wind, currents)
+
+The goal is individual arrows distinguishable yet revealing spatial structure — no visual clutter, no empty patches.
+
+- **Skip factors** (by data resolution): 1° → skip 3–5 pts; 0.25° → skip 8–15 pts; 2.5° → skip 1–2 pts. Larger domains need more skipping.
+- **Reference magnitude**: pick a round number near the **median** speed in the plotted data (not the max). E.g., typical 5–15 m/s → use `10 m/s`; typical 0.5–3 m/s → use `2 m/s`.
+- **Quiver key**: arrow + label inside a **white opaque box flush against the lower-right border** of the axes. Arrow must fit inside the box.
 
 ```python
-n = 5  # adjust skip based on resolution and domain
+n = 5  # adjust skip based on resolution and domain size
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), scale=200, width=0.003)
 # White box flush against lower-right corner
@@ -87,48 +98,57 @@ qk = ax.quiverkey(Q, 0.92, 0.04, 10, "10 m/s", labelpos="S",
                   labelsep=0.05, zorder=10)
 ```
 
-- Significance stippling — density must make significant regions identifiable without obscuring the fill beneath:
-  - Hatching: use sparse pattern `"..."` (3 dots); avoid `"/////"` or `"xxxxx"` which are too dense.
-  - Scatter: subsample every 2–4 grid points (`[::3]`), marker size 0.3–1.0, alpha 0.4–0.6.
-  - For high-resolution data (< 0.5°), increase subsampling to avoid solid-black patches.
+### Significance Stippling
+
+The goal is making significant regions identifiable without obscuring the underlying fill.
+
+- **Hatching**: use sparse pattern `"..."` (3 dots); avoid `"/////"` or `"xxxxx"` which are too dense.
+- **Scatter**: subsample every 2–4 grid points (`[::3]`), marker size 0.3–1.0, alpha 0.4–0.6.
+- For high-resolution data (< 0.5°), increase subsampling to avoid solid-black patches.
 
 ```python
 # Hatching method
 ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
             hatches=["...", None], colors="none",
             transform=ccrs.PlateCarree())
-# Scatter method (finer control)
+# Scatter method (finer control over density)
 sig = p_value < 0.05
 lon2d, lat2d = np.meshgrid(lon, lat)
 ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
            alpha=0.5, transform=ccrs.PlateCarree(), zorder=5)
 ```
 
-## Other figure types
+## Other Figure Types
 
-- **Time series**: legend, human-readable dates, zero line for anomalies. Pastel palette.
-- **Vertical cross-sections**: pressure (hPa) y-axis MUST be inverted (1000 bottom → 100 top).
-- **Hovmöller**: same colormap rules. Time on one axis, space on the other.
-- **Scatter / regression**: regression line, R², p-value annotated. Transparency for dense clouds.
+- **Time series**: legend outside data area, human-readable dates (`DateFormatter`), zero line for anomalies. Pastel palette for multiple lines.
+- **Vertical cross-sections**: pressure (hPa) on y-axis with inverted scale (1000 bottom → 100 top). Use `ax.set_yscale("log")` for log-pressure, or linear for troposphere-only. Label isobars clearly.
+- **Hovmöller diagrams**: same colormap rules as maps. Time on one axis, space (lat or lon) on the other. Diverging cmap for anomalies.
+- **Scatter / regression**: regression line, R² and p-value annotated in the plot. Use `alpha=0.3–0.5` for transparency when point clouds are dense.
+- **Taylor diagrams**: correlation on angular axis, std ratio on radial axis. Reference point at (1, 1). Label each model/experiment.
+- **Vertical profiles**: pressure on y-axis (inverted), variable on x-axis. Multiple profiles use distinct line styles + legend.
 
 ## Export
 
 - `fig.savefig("path.png", dpi=600, bbox_inches="tight")` + `fig.savefig("path.svg", bbox_inches="tight")`.
 - Call `plt.close(fig)` after saving to free memory.
 
-## Quick reject checklist
+## Quick Reject Checklist
 
-Revise IMMEDIATELY if any is true:
-- Main title or source/data stamp in figure
-- Text / ticks / legends / colorbars overlap or clip; font below 7 pt
-- Missing axis labels, units, colorbar, or `(a)`/`(b)` labels on multi-panel
-- Colormap not from `cmaps` or not using discrete levels
-- Anomaly/difference not using diverging cmap centered at 0
-- Comparable panels with different color scales
-- Wrong projection for region; missing coastlines
-- Vector density inappropriate (too dense to distinguish or too sparse to see structure); quiver key missing, unlabeled, or not inside lower-right of axes
-- Stippling obscures the main signal or is invisible at print resolution
-- Redundant contour lines on `contourf` without added information
-- White gaps or seams at dateline or plot boundary
-- Legend outside visible area or occluding data
-- Pressure y-axis not inverted on cross-sections
+Revise IMMEDIATELY if any is true — these are the most common problems that make figures unpublishable:
+
+| Category | Defect |
+|---|---|
+| **Text & Labels** | Main title or source/data stamp in figure |
+| | Text / ticks / legends / colorbars overlap or clip; any font below 7 pt |
+| | Missing axis labels, units, colorbar, or `(a)`/`(b)` labels on multi-panel |
+| **Colormap** | Colormap not from `cmaps` or not using discrete levels |
+| | Anomaly/difference not using diverging cmap centered at 0 |
+| | Comparable panels with different color scales |
+| **Geography** | Wrong projection for region; missing coastlines |
+| | White gaps or seams at dateline or plot boundary |
+| **Vectors** | Density inappropriate (too dense to distinguish or too sparse to see structure) |
+| | Quiver key missing, unlabeled, or not inside white box at lower-right |
+| **Stippling** | Obscures the main signal or is invisible at print resolution |
+| **Contours** | Redundant contour lines on `contourf` without added information |
+| **Layout** | Legend outside visible area or occluding data |
+| | Pressure y-axis not inverted on cross-sections |
