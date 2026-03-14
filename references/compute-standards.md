@@ -86,4 +86,3 @@ MUST include `units` and `long_name` in attributes. Verify by reopening.
 - **Avoid repeated I/O**: open datasets once and pass the xarray object; do not re-read files inside loops.
 - **Regridding**: build the `xesmf.Regridder` once, reuse for all variables/time steps. Use `periodic=True` for global lon.
 - **PyTorch**: when using `torch`, MUST use Intel XPU as the device (`torch.xpu`). `tensor = torch.tensor([1.0, 2.0]).to(“xpu”)`
-- Use only existing packages. If a package is missing, use a lightweight alternative or surface the dependency.

@@ -29,9 +29,9 @@ State assumptions explicitly. If uncertain or multiple interpretations exist —
 4. **Reuse existing layout**: use the project's own directories. Fall back to `data_processed/` + `figN/` only when none exist.
 5. **Separate compute from plot**: different scripts. Figure-only patches never touch compute.
 6. **Coordinate normalization**: verify naming (`lat`/`latitude`, `lon`/`longitude`) and convention (0–360 vs −180/180) BEFORE any merge, comparison, or plot.
-
-7. **No environment checks**: NEVER run `pip list`, `conda list`, `pip install`, version checks, or any environment-probing commands. Assume all packages listed in the references are available. If a runtime ImportError occurs, surface it to the user — do NOT attempt to install or diagnose packages.
-8. **Reference files are binding**: the `references/` directory contains mandatory standards. Every instruction, pattern, and rule in those files MUST be followed exactly. They are not suggestions — they are specifications. Violation of any reference rule is treated the same as violating a HARD RULE.
+7. **Dataset I/O**: `engine="h5netcdf", chunks="auto"` on EVERY `open_dataset`/`open_mfdataset`. GRIB only: `engine="cfgrib"`. Save with `engine="h5netcdf"`.
+8. **No env checks**: all packages are pre-installed. NEVER run `pip install`, `conda install`, import-checks, or version-probes. Start coding directly.
+9. **Follow references**: MUST load linked reference files before writing ANY compute or plot code. Patterns and snippets there are canonical — use them exactly, do not improvise alternatives.
 
 ## Workflow
 
@@ -49,13 +49,12 @@ Understand the data first (variables, dims, coords, units), then execute. Pick i
 
 Split into compute + plot. Use subagents when available — agree on output path and variable names first; plot waits if compute fails. Fix and re-run on failure; do NOT enter RR with broken outputs.
 
-### Compute — MUST read [compute-standards.md](references/compute-standards.md) first and follow every rule
+### Compute — MUST load [compute-standards.md](references/compute-standards.md) and follow all patterns
 
-- ALWAYS use `engine="h5netcdf"`, `chunks="auto"` when opening NetCDF. See reference for exact signatures.
 - Normalize coordinates first (rename `latitude`→`lat`, handle lon convention, ensure lat south→north).
 - Save intermediates to `data_processed/*.nc` with `units` and `long_name` attributes.
 
-### Plot — MUST read [plot-standards.md](references/plot-standards.md) first and follow every rule
+### Plot — MUST load [plot-standards.md](references/plot-standards.md) and follow all specs
 
 Read from saved intermediates, not raw data.
 
@@ -90,7 +89,7 @@ Read from saved intermediates, not raw data.
 
 ## RR — Review & Revision Loop
 
-MUST read [review.md](references/review.md) + [plot-standards.md](references/plot-standards.md) **in full** before starting. Use them as your checklist — every item applies.
+MUST load [review.md](references/review.md) + [plot-standards.md](references/plot-standards.md) before starting. Follow every check listed.
 
 **Loop until PASS or BLOCKED.**
 
@@ -110,7 +109,7 @@ Each iteration:
 
 ## Documentation — after RR reaches PASS
 
-MUST read [readme-template.md](references/readme-template.md) **in full** and follow the template exactly. Write or update a Chinese `README.md`:
+MUST load [readme-template.md](references/readme-template.md). Write or update a Chinese `README.md`:
 - New project → full README.
 - Later modifications → append to「版本更新」, update affected sections only.
 
@@ -120,6 +119,5 @@ Only produce `README.md` — no other documentation files.
 
 ## Failure Rules
 
-- Same error after 2 targeted fixes → recheck data, coordinates, units, dtypes from scratch.
 - Preserve original code style when modifying existing code.
 - Search the web only after local docs fail.

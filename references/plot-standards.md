@@ -49,6 +49,8 @@ Comparable panels MUST share the same colormap and range unless units differ.
 | Single time series | (10, 4)–(12, 5) |
 | 2-panel side-by-side | (14, 5)–(16, 6) |
 | 2-panel stacked | (10, 10)–(12, 12) |
+| 3-panel horizontal 1×3 | (16, 5)–(18, 6) |
+| 3-panel vertical 3×1 | (10, 14)–(12, 16) |
 | 4-panel 2×2 | (12, 10)–(14, 12) |
 | 6-panel | (16, 10)–(18, 12) |
 | Map + time series | (10, 8)–(12, 10) |
@@ -63,6 +65,7 @@ Comparable panels MUST share the same colormap and range unless units differ.
 ## Maps
 
 - Coastlines by default. National borders ONLY if requested.
+- Gridlines: `gl = ax.gridlines(draw_labels=True, linewidth=0.5, alpha=0.5, linestyle="--")` + `gl.top_labels = False; gl.right_labels = False`. Tick font 8–10 pt.
 - Vectors: density must make individual arrows distinguishable yet reveal spatial structure — no visual clutter, no empty patches.
   - 1° data → skip 3–5 pts; 0.25° data → skip 8–15 pts; 2.5° data → skip 1–2 pts. Adjust by domain size: larger domain needs more skipping.
   - Quiver key (reference arrow + label): place inside a **white opaque box flush against the lower-right border** of the axes. Arrow size must be proportionate — fits inside the box without overflow.
@@ -107,6 +110,11 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 - **Vertical cross-sections**: pressure (hPa) y-axis MUST be inverted (1000 bottom → 100 top).
 - **Hovmöller**: same colormap rules. Time on one axis, space on the other.
 - **Scatter / regression**: regression line, R², p-value annotated. Transparency for dense clouds.
+
+## Export
+
+- `fig.savefig("path.png", dpi=600, bbox_inches="tight")` + `fig.savefig("path.svg", bbox_inches="tight")`.
+- Call `plt.close(fig)` after saving to free memory.
 
 ## Quick reject checklist
 
