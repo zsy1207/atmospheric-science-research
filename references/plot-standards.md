@@ -1,5 +1,7 @@
 # Plot Standards
 
+> [Colormaps](#colormap-rules) · [Projections](#projections) · [Figure Sizing](#figure-sizing) · [Multi-panel](#multi-panel-layout) · [Maps](#maps) · [Vectors](#vectors-wind-currents) · [Stippling](#significance-stippling) · [Other Figures](#other-figure-types) · [Export](#export) · [Quick Reject](#quick-reject-checklist)
+
 ## Colormap Rules
 
 Colormaps from `import cmaps` with discrete `levels`. Avoid `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these distort data perception.
@@ -73,6 +75,12 @@ Suggested sizes — adjust as needed for content and layout.
 
 - Coastlines by default. National borders if relevant to the study.
 - Gridlines: `gl = ax.gridlines(draw_labels=True, linewidth=0.5, alpha=0.5, linestyle="--")` + `gl.top_labels = False; gl.right_labels = False`. Tick font 8–10 pt.
+
+### Borders & Shapefiles
+
+- **National borders**: `~/code/data/map/worldmap/world_boundaries.shp`
+- **China map**: `~/code/data/map/chinamap/simple_china.shp`
+- **South China Sea inset**: when plotting China maps, add a nine-dash line inset at bottom-right using `~/code/data/map/chinamap/nine_dots.shp`. Use `fig.add_axes([x, y, w, h])` for the inset with a small map extent covering the South China Sea.
 
 ### Vectors (wind, currents)
 

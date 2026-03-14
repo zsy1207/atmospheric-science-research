@@ -1,6 +1,6 @@
 # Review & Revision (RR)
 
-RR is a **figure-focused** review loop. The goal is to catch and fix visual defects and data sanity issues — not to re-audit the science.
+RR is a **figure-focused** review loop that catches visual defects and data sanity issues — not a science re-audit. Fix one problem at a time; one fix often resolves cascading issues.
 
 ## Steps
 
