@@ -41,13 +41,9 @@ These rules exist because atmospheric science figures follow strict domain conve
 
 5. **Separate compute from plot** — Atmospheric computations (regridding, EOF, climatology) on large datasets are expensive. Separation allows re-rendering figures without recomputing. Figure-only patches must never touch compute code.
 
-6. **Normalize coordinates before any merge or comparison** — Different data sources use different names (`lat` vs `latitude`) and lon conventions (0–360 vs −180/180). Merging without normalization causes silent spatial misalignment. Always verify naming, convert lon convention, ensure lat runs south→north.
+6. **No environment checks** — All packages are pre-installed. Running `pip install`, `conda install`, import-checks, or version-probes wastes time and risks errors. Start coding directly.
 
-7. **Dataset I/O**: `engine="h5netcdf", chunks="auto"` on every `open_dataset`/`open_mfdataset` — h5netcdf is faster than scipy and supports lazy loading; `chunks="auto"` enables dask parallelism. GRIB only: `engine="cfgrib"`. Save with `engine="h5netcdf"`.
-
-8. **No environment checks** — All packages are pre-installed. Running `pip install`, `conda install`, import-checks, or version-probes wastes time and risks errors. Start coding directly.
-
-9. **Load [plot-standards.md](references/plot-standards.md) before writing plot code** — it contains colormap tables, vector specs, and the quick reject checklist.
+7. **Load [plot-standards.md](references/plot-standards.md) before writing plot code** — it contains colormap tables, vector specs, and the quick reject checklist.
 
 ## Workflow
 
@@ -67,9 +63,8 @@ Split into compute + plot. Use subagents when available — agree on output path
 
 ### Compute
 
-- Normalize coordinates first (rename `latitude`→`lat`, handle lon convention, ensure lat south→north).
 - Save intermediates to `data_processed/*.nc` with `units` and `long_name` attributes.
-- **Performance**: subset region/time/level before heavy ops; never loop over grid points (`apply_ufunc` + `dask="parallelized"`); stay lazy — delay `.compute()` until the final step; build `xesmf.Regridder` once and reuse.
+- **Prefer fast tools and algorithms**: use `cdo` for regridding/climatology/temporal statistics when it can replace multi-step xarray code; use vectorized numpy/scipy or `apply_ufunc(dask="parallelized")` instead of Python loops; subset region/time/level before heavy ops; stay lazy — delay `.compute()` until the final step.
 
 ### Plot — load [plot-standards.md](references/plot-standards.md) first
 
@@ -85,7 +80,6 @@ Read from saved intermediates, not raw data.
   | Precipitation | `precip_11lev`, `precip3_16lev` | `precip_diff_12lev`, `CBR_drywet` |
   | SST | `temp_19lev`, `cmocean_thermal` | `GHRSST_anomaly`, `MPL_sstanom` |
   | Geopotential | `BlAqGrYeOrRe`, `BlAqGrYeOrReVi200` | — |
-  | Wind speed | `wind_17lev` | `BlWhRe`, `NCV_blu_red` |
   | SLP | `MPL_YlOrRd`, `BlAqGrYeOrRe` | — |
   | Generic | `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | `BlueWhiteOrangeRed`, `BlWhRe` |
 
