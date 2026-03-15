@@ -60,6 +60,14 @@ ALWAYS split into compute + plot — no monolithic scripts. Use subagents when a
 
 - Save intermediates to `data_processed/*.nc` — MUST include `units` and `long_name` attributes. Missing attributes = incomplete output.
 - **Use fast tools** — CDO, vectorized operations, efficient packages. NEVER use nested Python loops or brute-force approaches when a vectorized or CDO-based solution exists.
+- **Memory & dask — MANDATORY rules:**
+  - **ALWAYS** open data with dask backing: `xr.open_dataset(..., chunks="auto")` / `xr.open_mfdataset(..., chunks="auto")`. NEVER omit `chunks` — loading entire datasets into RAM causes OOM on large reanalysis/model outputs.
+  - **NEVER rechunk.** Do NOT call `.rechunk()` — it is expensive, triggers unnecessary data movement, and `chunks="auto"` already produces optimal chunk sizes for most workflows.
+  - **Lazy first, compute late.** Build the full computation graph (selections, arithmetic, reductions) BEFORE calling `.compute()` or `.load()`. NEVER insert `.load()` / `.compute()` / `.values` mid-pipeline — each one forces full materialization and defeats dask's lazy evaluation.
+  - **NEVER use `.values`.** It forces the entire dask array into RAM as a NumPy array, causing OOM. Use `.item()` for scalars, `.to_numpy()` on tiny already-reduced results only if absolutely necessary, or keep data as xarray/dask objects throughout.
+  - **Save with dask**: use `ds.to_netcdf(..., compute=True)` — dask writes chunks sequentially without loading everything into RAM.
+  - **Close datasets**: call `ds.close()` after processing is complete, or use `with xr.open_dataset(...) as ds:` context managers. Unclosed file handles leak memory across long scripts.
+  - **`gc.collect()` after large intermediate drops**: if you delete a large intermediate variable (`del big_array`), follow with `gc.collect()` to actually release the memory.
 
 ### Plot — MUST read [plot-standards.md](references/plot-standards.md) first
 
@@ -122,7 +130,8 @@ ONLY produce `README.md` — creating any other documentation file is FORBIDDEN.
 These are NOT optional checks — each one has caused silent data corruption in real projects:
 
 - **Missing values**: ALWAYS verify NaN handling (`skipna=True` or `nanmean`). Unhandled NaN = wrong results.
-- **Multi-file datasets**: MUST verify time continuity and variable consistency BEFORE merging. NEVER blindly concatenate.
+- **Multi-file datasets**: MUST verify time continuity and variable consistency BEFORE merging. NEVER blindly concatenate. Use `xr.open_mfdataset(..., chunks="auto")` — NEVER `chunks` omitted.
 - **Pressure-level data**: MUST check vertical coordinate ordering (ascending vs descending). Wrong ordering = inverted profiles.
+- **Memory overflow**: NEVER load full datasets without `chunks="auto"`. NEVER use `.values` — it forces full materialization. Do NOT rechunk. Build lazy computation graphs first, `.compute()` only at the end. 
 - **Existing code**: ALWAYS preserve original style when modifying. Do NOT refactor code you did not write.
 - **Web search**: use ONLY after local docs and domain knowledge fail — not as a first resort.
