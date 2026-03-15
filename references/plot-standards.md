@@ -4,12 +4,12 @@
 
 ## Colormap Rules
 
-Colormaps from `import cmaps` with discrete `levels`. Avoid `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these distort data perception.
+Colormaps from `import cmaps` with discrete `levels`. Avoid `MPL_jet`, `MPL_rainbow`, `MPL_viridis`, `NCV_jet` — these create perceptual artifacts that distort data interpretation (e.g., false boundaries where none exist).
 
 **Principles**:
-- Absolute fields → sequential cmaps (low=light, high=dark)
-- Anomaly / difference → diverging cmap, symmetric around 0 (center=white or neutral)
-- Comparable panels share the same cmap and range unless units differ
+- Absolute fields → sequential colormap (low=light, high=dark)
+- Anomaly / difference → diverging colormap, symmetric around 0 (center=white or neutral)
+- Comparable panels share the same colormap and level range unless units differ
 
 | Variable / context | Style | Recommended `cmaps` | Notes |
 |---|---|---|---|
@@ -50,26 +50,36 @@ Choose projections that minimize distortion for the study region.
 
 ## Figure Sizing
 
-Suggested sizes — adjust as needed for content and layout.
+Starting-point sizes — **always verify proportions in the rendered PNG and adjust iteratively**, because the right figsize depends on content density, colorbar placement, annotations, and output medium. Code-level sizing alone is unreliable.
 
-| Layout | `figsize` (inches) |
-|---|---|
-| Single map | (10, 6)–(12, 8) |
-| Single time series | (10, 4)–(12, 5) |
-| 2-panel side-by-side | (14, 5)–(16, 6) |
-| 2-panel stacked | (10, 10)–(12, 12) |
-| 3-panel horizontal 1×3 | (16, 5)–(18, 6) |
-| 3-panel vertical 3×1 | (10, 14)–(12, 16) |
-| 4-panel 2×2 | (12, 10)–(14, 12) |
-| 6-panel | (16, 10)–(18, 12) |
-| Map + time series | (10, 8)–(12, 10) |
+| Layout | Starting `figsize` (inches) | Notes |
+|---|---|---|
+| Single map | (10, 6)–(12, 8) | |
+| Single time series | (10, 4)–(12, 5) | |
+| 2-panel side-by-side | (14, 5)–(16, 6) | |
+| 2-panel stacked | (10, 10)–(12, 12) | |
+| 3-panel vertical 3×1 | (10, 14)–(12, 16) | Prefer over 1×3 horizontal for maps |
+| 4-panel 2×2 | (12, 10)–(14, 12) | |
+| 6-panel 2×3 or 3×2 | (16, 10)–(18, 12) | |
+| 3+ panels with colorbar | Use `GridSpec` with ratios | See Layout Anti-patterns below |
+
+### Layout Anti-patterns
+
+Common layout mistakes that are **only visible in rendered PNGs** — check every figure for these before entering RR. Any match is an immediate REVISE:
+
+- **Colorbar dominating panels**: In wide 1×N horizontal layouts with a shared colorbar, the colorbar often appears disproportionately large relative to the panels. Fix: use `shrink=0.5–0.7`, or `GridSpec` with explicit `width_ratios` (e.g., `[1, 1, 1, 0.05]` for 3 panels + colorbar). For 3+ map panels, prefer vertical stacking or 2×2 grids over 1×N horizontal.
+- **Elements crowding above axes**: Panel labels `(a)`, quiver keys, and annotations all placed at top-left above axes will overlap. Solution: panel labels at top-left, quiver keys at **top-right** (see [Vectors](#vectors-wind-currents)).
+- **Rigid `plt.subplots()` for complex layouts**: Don't force maps + colorbars + legends into a fixed subplot grid. Use `GridSpec` or `subplot_mosaic` with explicit `width_ratios` / `height_ratios` for precise proportional control.
+- **Assuming code-level params produce correct output**: figsize, shrink, pad, wspace, hspace are all initial guesses. The only reliable check is the rendered PNG — always verify and adjust in the RR loop.
 
 ## Multi-panel Layout
 
-- `fig, axes = plt.subplots(nrows, ncols, subplot_kw={"projection": ...}, constrained_layout=True)`
-- Shared variable + range → one shared colorbar at bottom or right.
+- Simple grids: `fig, axes = plt.subplots(nrows, ncols, subplot_kw={"projection": ...}, constrained_layout=True)`
+- Complex layouts (3+ panels, mixed content, shared colorbar needing precise sizing): use `GridSpec` with explicit `width_ratios` / `height_ratios`.
+- Shared variable + range → one shared colorbar. Ensure the colorbar is proportionate to panels — control with `shrink`, `aspect`, or a dedicated `GridSpec` column/row.
 - Colorbar with units. Font readable at print size, min 7 pt.
 - Panel labels: `ax.text(-0.02, 1.03, "(a)", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`
+- **All layout parameters are initial estimates.** Verify in the rendered PNG and adjust — see [Layout Anti-patterns](#layout-anti-patterns) above.
 
 ## Maps
 
@@ -88,14 +98,14 @@ Individual arrows should be distinguishable and reveal spatial structure — no 
 
 - **Skip factors** (by data resolution): 1° → skip 3–5 pts; 0.25° → skip 8–15 pts; 2.5° → skip 1–2 pts. Larger domains need more skipping.
 - **Reference magnitude**: round number near the **median** speed (not the max). E.g., typical 5–15 m/s → `10 m/s`.
-- **Quiver key**: reference arrow placed **outside the axes at top-left, aligned with panel labels**. No background box needed.
+- **Quiver key**: reference arrow placed **outside the axes at top-right** to avoid conflicting with panel labels `(a)` at top-left.
 
 ```python
 n = 5  # adjust skip based on resolution and domain size
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), scale=200, width=0.003)
-# Reference arrow outside axes, top-left, aligned with panel labels
-qk = ax.quiverkey(Q, 0.0, 1.04, 10, "10 m/s", labelpos="E",
+# Reference arrow at top-right (top-left reserved for panel labels)
+qk = ax.quiverkey(Q, 1.0, 1.04, 10, "10 m/s", labelpos="W",
                   coordinates="axes", fontproperties={"size": 9},
                   labelsep=0.05, zorder=10)
 ```
@@ -124,7 +134,7 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 
 - **Time series**: legend outside data area, human-readable dates (`DateFormatter`), zero line for anomalies. Pastel palette for multiple lines.
 - **Vertical cross-sections**: pressure (hPa) on y-axis with inverted scale (1000 bottom → 100 top). Use `ax.set_yscale("log")` for log-pressure, or linear for troposphere-only. Label isobars clearly.
-- **Hovmöller diagrams**: same colormap rules as maps. Time on one axis, space (lat or lon) on the other. Diverging cmap for anomalies.
+- **Hovmöller diagrams**: same colormap rules as maps. Time on one axis, space (lat or lon) on the other. Diverging colormap for anomalies.
 - **Scatter / regression**: regression line, R² and p-value annotated in the plot. Use `alpha=0.3–0.5` for transparency when point clouds are dense.
 - **Taylor diagrams**: correlation on angular axis, std ratio on radial axis. Reference point at (1, 1). Label each model/experiment.
 - **Vertical profiles**: pressure on y-axis (inverted), variable on x-axis. Multiple profiles use distinct line styles + legend.
@@ -136,16 +146,16 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 
 ## Quick Reject Checklist
 
-Revise if any is true — common problems that make figures unpublishable:
+**MUST revise immediately** if any is true — common problems that make figures unpublishable:
 
 | Category | Defect |
 |---|---|
-| **Text & Labels** | Main title or source/data stamp in figure |
+| **Text & Labels** | Main title or source/data stamp in figure (these belong in the caption) |
 | | Text / ticks / legends / colorbars overlap or clip; any font below 7 pt |
 | | Missing axis labels, units, colorbar, or `(a)`/`(b)` labels on multi-panel |
 | **Colormap** | Colormap not from `cmaps` or not using discrete levels |
-| | Anomaly/difference not using diverging cmap centered at 0 |
-| | Comparable panels with different color scales |
+| | Anomaly/difference not using diverging colormap centered at 0 |
+| | Comparable panels with different colormap or level range |
 | **Geography** | Wrong projection for region; missing coastlines |
 | | White gaps or seams at dateline or plot boundary |
 | **Vectors** | Density inappropriate (too dense to distinguish or too sparse to see structure) |
@@ -154,3 +164,6 @@ Revise if any is true — common problems that make figures unpublishable:
 | **Contours** | Redundant contour lines on `contourf` without added information |
 | **Layout** | Legend outside visible area or occluding data |
 | | Pressure y-axis not inverted on cross-sections |
+| | Colorbar disproportionately large relative to panels (especially 1×N horizontal layouts) |
+| | Panel labels, quiver keys, or annotations overlapping above axes |
+| | Layout proportions not verified against rendered PNG (code-level params are unreliable) |

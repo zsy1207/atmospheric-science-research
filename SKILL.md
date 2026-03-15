@@ -10,39 +10,39 @@ description: >-
 > **Reference files** — read on demand, not upfront:
 > | File | Contents | When to read |
 > |---|---|---|
-> | [plot-standards.md](references/plot-standards.md) | Colormap tables, vector specs, projections, figure sizing, quick reject checklist | Before writing any plot code |
-> | [review.md](references/review.md) | RR loop procedure, quick fix recipes, sanity checks | Before starting an RR loop |
-> | [readme-template.md](references/readme-template.md) | Chinese README template | After RR reaches PASS |
+> | [plot-standards.md](references/plot-standards.md) | Colormap tables, vector specs, projections, figure sizing, quick reject checklist | MUST read before writing ANY plot code |
+> | [review.md](references/review.md) | RR loop procedure, quick fix recipes, sanity checks | MUST read before starting ANY RR loop |
+> | [readme-template.md](references/readme-template.md) | Chinese README template | MUST read after RR reaches PASS |
 
 ## Before Writing Code
 
-Inspect candidate inputs and directory structure quickly — only to the depth needed for design. **Do NOT write Python preview scripts**; use shell probes instead:
+**MANDATORY** — inspect inputs and directory structure BEFORE writing a single line of code. Shell probes ONLY — do NOT write Python preview scripts:
 - **NetCDF**: `ncdump -h file.nc`
-- **GRIB**: `cdo sinfon`
+- **GRIB**: `cdo sinfon file.grib`
 
-Confirm variables, dimensions, coordinates, units, time coverage, spatial region, and missing-data conventions before designing compute code.
+You MUST confirm: variables, dimensions, coordinates, units, time coverage, spatial region, and missing-data conventions. Writing code without this confirmation is FORBIDDEN — it leads to silent errors and wasted compute.
 
- If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), **ask the user** rather than picking one silently.
+If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), you MUST ask the user. NEVER silently pick one — wrong assumptions invalidate entire pipelines.
 
 ## Core Standards
 
-These rules reflect atmospheric science domain conventions — violating them produces misleading or unpublishable output.
+**ZERO TOLERANCE** — violating ANY of these rules produces misleading or unpublishable output. Every rule below is a hard constraint, not a suggestion.
 
-1. **Colormaps from `cmaps` with discrete levels** — Domain-specific colormaps carry scientific meaning (blue-white-red for anomalies, brown-to-green for precipitation). Always: `import cmaps` + explicit `levels`. Never: `jet`, `rainbow`, `viridis`, or any matplotlib built-in.
+1. **`import cmaps` + explicit `levels` — NO EXCEPTIONS.** Domain-specific colormaps carry scientific meaning. NEVER use `jet`, `rainbow`, `viridis`, or any generic matplotlib colormap. These lack the perceptual structure needed for scientific communication and WILL be rejected.
 
-2. **No titles or stamps** — In publications, titles duplicate the caption. Source labels clutter the figure. All metadata belongs in the caption, not `suptitle()`.
+2. **NO titles, NO stamps — EVER.** NEVER call `suptitle()`, `set_title()`, or add source/data stamps to figures. All metadata belongs in the caption. A figure with a title is an immediate REVISE.
 
-3. **Review rendered PNG, not just code** — Code that looks correct can render with overlapping labels, clipped elements, or wrong colors. Open the actual PNG with the Read tool in every RR iteration.
+3. **ALWAYS open and inspect the rendered PNG — NEVER review code alone.** Code that looks correct can render with overlapping labels, clipped elements, or wrong colors. You MUST open the actual PNG with the Read tool in EVERY RR iteration. Skipping this step is the single most common source of defects.
 
-4. **Reuse existing project layout** — Existing directories reflect the user's organizational decisions. Only create `data_processed/` + `figN/` when no structure exists.
+4. **Reuse existing project layout — do NOT reorganize.** Existing directories reflect the user's decisions. ONLY create `data_processed/` + `figN/` when NO structure exists. Restructuring without explicit permission is FORBIDDEN.
 
-5. **Separate compute from plot** — Atmospheric computations (regridding, EOF, climatology) are expensive. Separation allows re-rendering without recomputing. Figure-only patches never touch compute code.
+5. **Separate compute from plot — ALWAYS.** Atmospheric computations (regridding, EOF, climatology) are expensive. NEVER mix compute and plot in the same script. Compute saves to disk; plot reads from disk. No exceptions.
 
-6. **No environment setup** — All packages are pre-installed. No `pip install`, `conda install`, import checks, or version probes.
+6. **NO environment setup — EVER.** All packages are pre-installed. NEVER run `pip install`, `conda install`, import checks, or version probes. These waste time and clutter output.
 
 ## Workflow
 
-Understand the data first (variables, dims, coords, units), then execute. Pick initial contour levels from domain knowledge — refine visually in the RR loop, not by profiling.
+Understand the data FIRST (variables, dims, coords, units), THEN execute. Pick initial contour levels from domain knowledge — refine visually in RR, NEVER by profiling data ranges in code.
 
 | Situation | Flow |
 |---|---|
@@ -54,18 +54,18 @@ Understand the data first (variables, dims, coords, units), then execute. Pick i
 
 ## Execute
 
-Split into compute + plot. Use subagents when available — agree on output path and variable names first; plot waits if compute fails. Fix and re-run on failure; do NOT enter RR with broken outputs.
+ALWAYS split into compute + plot — no monolithic scripts. Use subagents when available — agree on output path and variable names FIRST; plot waits if compute fails. Fix and re-run on failure; entering RR with broken outputs wastes iterations and is unacceptable.
 
 ### Compute
 
-- Save intermediates to `data_processed/*.nc` with `units` and `long_name` attributes.
-- **Prefer fast tools**: `cdo` for regridding/climatology/temporal statistics when it can replace multi-step xarray code; vectorized numpy/scipy or `apply_ufunc(dask="parallelized")` over Python loops; subset region/time/level before heavy ops; stay lazy — delay `.compute()` until the final step.
+- Save intermediates to `data_processed/*.nc` — MUST include `units` and `long_name` attributes. Missing attributes = incomplete output.
+- **Use fast tools** — CDO, vectorized operations, efficient packages. NEVER use nested Python loops or brute-force approaches when a vectorized or CDO-based solution exists.
 
-### Plot — read [plot-standards.md](references/plot-standards.md) first
+### Plot — MUST read [plot-standards.md](references/plot-standards.md) first
 
-Read from saved intermediates, not raw data.
+Read from saved intermediates, NEVER from raw data. Detailed specs (panel labels, colorbar, vectors, stippling, borders, export) are in [plot-standards.md](references/plot-standards.md) — do NOT duplicate here.
 
-- **Colormap**: `import cmaps`, discrete `levels`. Absolute → sequential; anomaly/difference → diverging, symmetric, center 0. Comparable panels share cmap + range.
+- **Colormap**: `import cmaps` + discrete `levels`. Absolute fields → sequential; anomaly/difference → diverging, symmetric, center 0. Comparable panels MUST share colormap and level range — mismatched scales between panels is an immediate REVISE.
 
   Quick lookup (full table in [plot-standards.md](references/plot-standards.md)):
 
@@ -78,46 +78,51 @@ Read from saved intermediates, not raw data.
   | SLP | `MPL_YlOrRd`, `BlAqGrYeOrRe` | — |
   | Generic | `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | `BlueWhiteOrangeRed`, `BlWhRe` |
 
-- **Panel labels**: `ax.text(-0.02, 1.03, "(a) subtitle", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`.
-- **Colorbar**: show units. Font readable at print size, min 7 pt.
-- **Contour lines**: do NOT add on `contourf` unless they convey extra information (e.g., geopotential contours over temperature fill).
-- **Vectors**: skip by resolution (1°→3–5, 0.25°→8–15, 2.5°→1–2; larger domain → more skip). Quiver key: reference arrow **outside axes at top-left, aligned with panel labels**; ref magnitude = round number near **median** speed. Full spec in [plot-standards.md](references/plot-standards.md).
-- **Stippling**: sparse enough to identify significant regions without obscuring fill. Hatching `"..."` or scatter `[::3]`, size 0.3–1.0, alpha 0.4–0.6. Full spec in [plot-standards.md](references/plot-standards.md).
-- **Borders**: for national borders use shapefiles from `~/code/data/map/worldmap/world_boundaries.shp`. For China maps use `~/code/data/map/chinamap/simple_china.shp`, and add a South China Sea nine-dash line inset at bottom-right using `~/code/data/map/chinamap/nine_dots.shp`.
-- **Export**: PNG 600 dpi + SVG, `bbox_inches="tight"`.
+- **Layout code is NEVER correct on first render** — figsize, subplot arrangement, colorbar size, and element positions are starting-point guesses. You MUST verify proportions in the rendered PNG and refine iteratively in RR. See "Layout Anti-patterns" in [plot-standards.md](references/plot-standards.md).
 
 ### Patch (figure-only fix)
 
-1. Read existing code. Identify the MINIMUM change needed.
-2. Patch ONLY affected code — no directory restructuring, no compute rewrite.
-3. Re-render affected figures only.
+1. Read existing code. Identify the MINIMUM change needed — nothing more.
+2. Patch ONLY affected code — NO directory restructuring, NO compute rewrite.
+3. Re-render affected figures ONLY.
 
 ---
 
 ## RR — Review & Revision Loop
 
-Load [review.md](references/review.md) and [plot-standards.md](references/plot-standards.md) before starting. Follow every check listed there.
+**MANDATORY**: Load [review.md](references/review.md) and [plot-standards.md](references/plot-standards.md) BEFORE starting. Follow EVERY check listed there — skipping any check is FORBIDDEN.
 
-**Loop until PASS or BLOCKED.** Max 10 iterations per figure.
+**Loop until PASS or BLOCKED.** Max 10 iterations per figure. NEVER declare PASS without opening and inspecting the PNG.
 
-Each iteration: open PNG → check against Core Standards + quick reject checklist → verify physical plausibility → classify as REVISE / BLOCKED / PASS. Same defect after 2 fixes → recheck data, coords, units, dtypes from scratch.
+Each iteration — this sequence is MANDATORY, do NOT skip or reorder:
+1. Open PNG with Read tool
+2. Check layout proportions FIRST (colorbar sizing, element crowding, subplot spacing)
+3. Check against Core Standards + quick reject checklist — every item
+4. Verify physical plausibility (values, units, sign conventions, spatial patterns)
+5. Classify: REVISE / BLOCKED / PASS
+
+Same defect after 2 fixes → STOP patching. Recheck data, coords, units, dtypes from scratch — the root cause is upstream.
+
+Layout parameters in code are NEVER correct on first render — the rendered PNG is the **ONLY** ground truth. NEVER trust code-level parameters over what you see in the image.
 
 ---
 
-## Documentation — after RR reaches PASS
+## Documentation — ONLY after RR reaches PASS
 
-Load [readme-template.md](references/readme-template.md). Write or update a Chinese `README.md`:
+MUST load [readme-template.md](references/readme-template.md) first. Write or update a Chinese `README.md`:
 - New project → full README.
-- Later modifications → append to「版本更新」, update affected sections only.
+- Later modifications → append to「版本更新」, update affected sections ONLY.
 
-Only produce `README.md` — no other documentation files.
+ONLY produce `README.md` — creating any other documentation file is FORBIDDEN.
 
 ---
 
-## Data Handling Gotchas
+## Data Handling — Common Traps
 
-- Missing values: verify NaN handling (`skipna=True` or `nanmean`).
-- Multi-file datasets: verify time continuity and variable consistency before merging.
-- Pressure-level data: check vertical coordinate ordering (ascending vs descending).
-- Existing code: preserve original style when modifying.
-- Web search: use only after local docs and domain knowledge fail.
+These are NOT optional checks — each one has caused silent data corruption in real projects:
+
+- **Missing values**: ALWAYS verify NaN handling (`skipna=True` or `nanmean`). Unhandled NaN = wrong results.
+- **Multi-file datasets**: MUST verify time continuity and variable consistency BEFORE merging. NEVER blindly concatenate.
+- **Pressure-level data**: MUST check vertical coordinate ordering (ascending vs descending). Wrong ordering = inverted profiles.
+- **Existing code**: ALWAYS preserve original style when modifying. Do NOT refactor code you did not write.
+- **Web search**: use ONLY after local docs and domain knowledge fail — not as a first resort.

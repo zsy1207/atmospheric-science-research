@@ -2,10 +2,12 @@
 
 RR is a **figure-focused** review loop that catches visual defects and data sanity issues — not a science re-audit. Fix one problem at a time; one fix often resolves cascading issues.
 
+**Layout is the most common source of visual defects.** Code-level parameters — figsize, spacing, colorbar dimensions, element positions — are initial estimates that rarely look right on first render. Every RR iteration should verify layout proportions in the actual PNG. Typical issues: colorbar disproportionately large, panel labels and quiver keys overlapping, elements clipped or crowded. These problems are only visible in the rendered image, not in code.
+
 ## Steps
 
 1. **Open actual PNG.** Do NOT review code alone. Render first if figures do not exist.
-2. Check against Core Standards in SKILL.md and [plot-standards.md](plot-standards.md) quick reject checklist. Fix the first problem found immediately — do NOT batch multiple issues, as one fix may resolve others.
+2. Check against Core Standards in SKILL.md and [plot-standards.md](plot-standards.md) quick reject checklist — **pay special attention to layout**: colorbar proportions vs panel size, element overlap (panel labels vs quiver keys), subplot spacing, and overall figure balance. Fix the first problem found immediately — do NOT batch multiple issues, as one fix may resolve others.
 3. Quick sanity glance — do values, units, sign conventions, and spatial patterns look physically plausible?
    - Temperature in K or °C, not raw integers or implausible ranges (e.g., 500 K surface temp)
    - Precipitation non-negative; wind speed non-negative
@@ -32,11 +34,15 @@ RR is a **figure-focused** review loop that catches visual defects and data sani
 | Stippling invisible | Increase marker size or switch to `hatches=["..."]` |
 | Stippling too dense | Increase subsampling `[::4]` or reduce marker size; high-res data needs more skipping |
 | Legend obscures data | `bbox_to_anchor=(1.02, 1)` outside axes |
-| Colorbar washed out | Tighten `levels` to 2nd–98th percentile of the data range |
+| Fill colors washed out | Tighten `levels` to 2nd–98th percentile of the data range |
 | Quiver too dense or sparse | Adjust skip: 1° → 3–5, 0.25° → 8–15, 2.5° → 1–2; larger domain needs more |
-| Quiver key bad position or magnitude | Place outside axes at top-left: `quiverkey(Q, 0.0, 1.04, ref_val, "X m/s", labelpos="E", coordinates="axes")`. Ref magnitude = round number near **median** speed |
+| Quiver key bad position or magnitude | Place outside axes at **top-right**: `quiverkey(Q, 1.0, 1.04, ref_val, "X m/s", labelpos="W", coordinates="axes")`. Ref magnitude = round number near **median** speed |
 | Subplots too tight | `constrained_layout_pads(hspace=0.08, wspace=0.08)` |
 | Gridline labels overlap at edges | `gl.top_labels = False; gl.right_labels = False` |
-| Anomaly not centered at 0 | Use symmetric `levels`: e.g., `np.arange(-5, 5.5, 0.5)` with diverging cmap |
+| Anomaly not centered at 0 | Use symmetric `levels`: e.g., `np.arange(-5, 5.5, 0.5)` with diverging colormap |
 | Colorbar label missing units | Add `cbar.set_label("Variable (units)", fontsize=10)` |
 | Cross-section y-axis not inverted | `ax.invert_yaxis()` or `ax.set_ylim(1000, 100)` |
+| Colorbar dominates 1×N layout | `shrink=0.5–0.7`; or `GridSpec` with narrow colorbar column: `width_ratios=[1,1,1,0.05]` |
+| Panel labels & quiver keys overlap | Move quiver key to top-right: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
+| Horizontal panels too squashed | Switch to vertical stacking or 2×2 grid — maps need height for latitude range |
+| Layout looks wrong despite "correct" code | **All layout params are estimates.** Adjust figsize, shrink, pad, wspace/hspace based on rendered PNG, not theory |
