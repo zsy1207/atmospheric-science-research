@@ -2,16 +2,7 @@
 name: atmospheric-science-research
 description: >-
   Handles file-based atmospheric and climate science workflows that need a
-  real project structure rather than a one-off answer — processing
-  NetCDF/GRIB data (ERA5, JRA-55, MERRA-2, CMIP, WRF, GFS, station obs)
-  or existing atmospheric figure files for diagnostics, statistics,
-  regridding, reusable computation, and publication-grade figure generation
-  with compute-plot separation. Also handles figure-only patches (labels,
-  levels, colorbars, legends, panel letters, layout, exports) and review of
-  rendered outputs in existing atmospheric projects. Do not use for
-  forecasts, literature summaries, pure writing, generic plotting outside
-  atmospheric science, app or UI work, deployment, or simple one-step
-  downloads.
+  real project structure rather than a one-off answer.
 ---
 
 # Atmospheric Science Research
@@ -25,7 +16,13 @@ description: >-
 
 ## Before Writing Code
 
-Surface assumptions about the data — units, coordinate convention (0–360 vs −180/180), temporal resolution, variable naming, and climatology baseline. If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), **ask the user** rather than picking one silently.
+Inspect candidate inputs and directory structure quickly — only to the depth needed for design. **Do NOT write Python preview scripts**; use shell probes instead:
+- **NetCDF**: `ncdump -h file.nc`
+- **GRIB**: `cdo sinfon`
+
+Confirm variables, dimensions, coordinates, units, time coverage, spatial region, and missing-data conventions before designing compute code.
+
+ If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), **ask the user** rather than picking one silently.
 
 ## Core Standards
 
