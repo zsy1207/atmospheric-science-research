@@ -30,7 +30,7 @@ If multiple valid interpretations exist (e.g., "annual mean" could be calendar-y
 
 1. **`import cmaps` + explicit `levels` — NO EXCEPTIONS.** Domain-specific colormaps carry scientific meaning. NEVER use `jet`, `rainbow`, `viridis`, or any generic matplotlib colormap. These lack the perceptual structure needed for scientific communication and WILL be rejected.
 
-2. **NO titles, NO stamps — EVER.** NEVER call `suptitle()`, `set_title()`, or add source/data stamps to figures. All metadata belongs in the caption. A figure with a title is an immediate REVISE.
+2. **NO full titles, NO stamps — EVER.** NEVER call `suptitle()` or add source/data stamps to figures. Use ONLY `ax.set_title("(a) Brief subtitle", loc="left")` for panel labels — centered or descriptive-only titles are FORBIDDEN. A figure with a centered title or stamp is an immediate REVISE.
 
 3. **ALWAYS open and inspect the rendered PNG — NEVER review code alone.** Code that looks correct can render with overlapping labels, clipped elements, or wrong colors. You MUST open the actual PNG with the Read tool in EVERY RR iteration. Skipping this step is the single most common source of defects.
 

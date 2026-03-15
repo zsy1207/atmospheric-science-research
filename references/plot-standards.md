@@ -68,7 +68,7 @@ Starting-point sizes — **always verify proportions in the rendered PNG and adj
 Common layout mistakes that are **only visible in rendered PNGs** — check every figure for these before entering RR. Any match is an immediate REVISE:
 
 - **Colorbar dominating panels**: In wide 1×N horizontal layouts with a shared colorbar, the colorbar often appears disproportionately large relative to the panels. Fix: use `shrink=0.5–0.7`, or `GridSpec` with explicit `width_ratios` (e.g., `[1, 1, 1, 0.05]` for 3 panels + colorbar). For 3+ map panels, prefer vertical stacking or 2×2 grids over 1×N horizontal.
-- **Elements crowding above axes**: Panel labels `(a)`, quiver keys, and annotations all placed at top-left above axes will overlap. Solution: panel labels at top-left, quiver keys at **top-right** (see [Vectors](#vectors-wind-currents)).
+- **Elements crowding above axes**: Panel labels `(a) subtitle`, quiver keys, and annotations all placed at top-left above axes will overlap. Solution: panel labels at top-left via `set_title(loc="left")`, quiver keys at **top-right** (see [Vectors](#vectors-wind-currents)).
 - **Rigid `plt.subplots()` for complex layouts**: Don't force maps + colorbars + legends into a fixed subplot grid. Use `GridSpec` or `subplot_mosaic` with explicit `width_ratios` / `height_ratios` for precise proportional control.
 - **Assuming code-level params produce correct output**: figsize, shrink, pad, wspace, hspace are all initial guesses. The only reliable check is the rendered PNG — always verify and adjust in the RR loop.
 
@@ -78,7 +78,7 @@ Common layout mistakes that are **only visible in rendered PNGs** — check ever
 - Complex layouts (3+ panels, mixed content, shared colorbar needing precise sizing): use `GridSpec` with explicit `width_ratios` / `height_ratios`.
 - Shared variable + range → one shared colorbar. Ensure the colorbar is proportionate to panels — control with `shrink`, `aspect`, or a dedicated `GridSpec` column/row.
 - Colorbar with units. Font readable at print size, min 7 pt.
-- Panel labels: `ax.text(-0.02, 1.03, "(a)", transform=ax.transAxes, fontsize=11, fontweight="bold", va="bottom", ha="right")`
+- Panel labels: `ax.set_title("(a) Brief subtitle", loc="left", fontsize=11, fontweight="bold")` — lowercase letter in parentheses + short descriptive text (e.g., `"(a) JJA Climatology"`, `"(b) DJF Anomaly"`). NEVER use centered titles or omit the `(a)` prefix.
 - **All layout parameters are initial estimates.** Verify in the rendered PNG and adjust — see [Layout Anti-patterns](#layout-anti-patterns) above.
 
 ## Maps
@@ -150,9 +150,9 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 
 | Category | Defect |
 |---|---|
-| **Text & Labels** | Main title or source/data stamp in figure (these belong in the caption) |
+| **Text & Labels** | Centered title, `suptitle()`, or source/data stamp in figure (these belong in the caption) |
 | | Text / ticks / legends / colorbars overlap or clip; any font below 7 pt |
-| | Missing axis labels, units, colorbar, or `(a)`/`(b)` labels on multi-panel |
+| | Missing axis labels, units, colorbar, or `(a) subtitle` labels on multi-panel |
 | **Colormap** | Colormap not from `cmaps` or not using discrete levels |
 | | Anomaly/difference not using diverging colormap centered at 0 |
 | | Comparable panels with different colormap or level range |

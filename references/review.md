@@ -8,22 +8,31 @@ RR is a **figure-focused** review loop that catches visual defects and data sani
 
 1. **Open actual PNG.** Do NOT review code alone. Render first if figures do not exist.
 2. Check against Core Standards in SKILL.md and [plot-standards.md](plot-standards.md) quick reject checklist — **pay special attention to layout**: colorbar proportions vs panel size, element overlap (panel labels vs quiver keys), subplot spacing, and overall figure balance. Fix the first problem found immediately — do NOT batch multiple issues, as one fix may resolve others.
-3. Quick sanity glance — do values, units, sign conventions, and spatial patterns look physically plausible?
+3. **Holistic visual assessment — top-journal standard gate.** Step back and evaluate the figure as a whole. Ask: "Would this figure look at home in *Nature*, *Science*, or *JC*?" If the answer is no, it is an immediate `REVISE`. Common holistic failures:
+   - Overall composition feels cluttered, unbalanced, or amateurish
+   - Inconsistent styling across panels (font sizes, line weights, colorbars, label positions)
+   - Color choices clash, look garish, or lack visual hierarchy
+   - Too much visual noise — excessive gridlines, ticks, annotations competing for attention
+   - White space poorly managed — panels either crammed or swimming in emptiness
+   - The figure simply "doesn't look right" even if no single element is technically wrong — **trust this instinct and REVISE**
+4. Quick sanity glance — do values, units, sign conventions, and spatial patterns look physically plausible?
    - Temperature in K or °C, not raw integers or implausible ranges (e.g., 500 K surface temp)
    - Precipitation non-negative; wind speed non-negative
    - Cyclonic vorticity sign correct per hemisphere (negative in NH for ζ)
    - Spatial patterns make physical sense (warm SST in tropics, cold at poles, westerlies in mid-latitudes)
    - Anomaly magnitudes reasonable for the variable and time scale
-4. Classify:
+5. Classify:
    - Visual-only → `REVISE` plotting code only.
    - Data/diagnostic issue → `REVISE` compute code + replot.
    - Unresolved science question → `BLOCKED` — state what needs the user's decision.
    - No issue → `PASS`.
-5. After `REVISE`: re-render only affected figures, re-open PNG, continue until `PASS` or `BLOCKED`.
-6. If 2 rounds fail on the same issue → stop patching. Reassess the approach — recheck data, coords, units, dtypes from scratch.
-7. Max 10 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
+6. After `REVISE`: re-render only affected figures, re-open PNG, continue until `PASS` or `BLOCKED`.
+7. If 2 rounds fail on the same issue → stop patching. Reassess the approach — recheck data, coords, units, dtypes from scratch.
+8. Max 10 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
 
 ## Quick Fixes
+
+**All numeric values below (shrink, pad, skip, fontsize, etc.) are starting-point suggestions, NOT prescriptions.** Always tune them based on the actual rendered PNG — figure dimensions, number of panels, data density, and projection all affect what looks right. Treat every parameter as an initial estimate to iterate from, not a fixed answer.
 
 | Defect | Fix |
 |---|---|
