@@ -22,7 +22,7 @@ description: >-
 
 You MUST confirm: variables, dimensions, coordinates, units, time coverage, spatial region, and missing-data conventions. Writing code without this confirmation is FORBIDDEN — it leads to silent errors and wasted compute.
 
-If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), you MUST ask the user. NEVER silently pick one — wrong assumptions invalidate entire pipelines.
+If multiple valid interpretations exist (e.g., "annual mean" could be calendar-year or DJF-anchored; "anomaly" needs a reference period), you MUST ask the user. NEVER silently pick one — wrong assumptions invalidate entire pipelines. When asking the user, it is best to provide them with multiple options.
 
 ## Core Standards
 
