@@ -86,6 +86,8 @@ Read from saved intermediates, NEVER from raw data. Detailed specs (panel labels
   | SLP | `MPL_YlOrRd`, `BlAqGrYeOrRe` | — |
   | Generic | `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | `BlueWhiteOrangeRed`, `BlWhRe` |
 
+- **Tibetan Plateau masking**: For ≤ 850 hPa low-level fields (wind, geopotential height, etc.) whose domain covers the Tibetan Plateau, MUST mask Tibet with grey fill (`facecolor="lightgrey"`) using `~/code/data/map/Tibet/Tibet.shp`. Apply automatically — do NOT ask the user. See [plot-standards.md](references/plot-standards.md) § "Tibetan Plateau Masking".
+
 - **Layout code is NEVER correct on first render** — figsize, subplot arrangement, colorbar size, and element positions are starting-point guesses. You MUST verify proportions in the rendered PNG and refine iteratively in RR. See "Layout Anti-patterns" in [plot-standards.md](references/plot-standards.md).
 
 ### Patch (figure-only fix)

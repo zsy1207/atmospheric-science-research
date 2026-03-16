@@ -55,3 +55,4 @@ RR is a **figure-focused** review loop that catches visual defects and data sani
 | Panel labels & quiver keys overlap | Move quiver key to top-right: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
 | Horizontal panels too squashed | Switch to vertical stacking or 2×2 grid — maps need height for latitude range |
 | Layout looks wrong despite "correct" code | **All layout params are estimates.** Adjust figsize, shrink, pad, wspace/hspace based on rendered PNG, not theory |
+| 850 hPa (or lower) field shows data over Tibet | **Must mask.** Add `ax.add_geometries(tibet.geometry, ccrs.PlateCarree(), facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5)` using `~/code/data/map/Tibet/Tibet.shp`. See plot-standards.md § "Tibetan Plateau Masking" |

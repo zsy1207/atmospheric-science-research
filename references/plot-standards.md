@@ -92,6 +92,51 @@ Common layout mistakes that are **only visible in rendered PNGs** — check ever
 - **China map**: `~/code/data/map/chinamap/simple_china.shp`
 - **South China Sea inset**: when plotting China maps, add a nine-dash line inset at bottom-right using `~/code/data/map/chinamap/nine_dots.shp`. Use `fig.add_axes([x, y, w, h])` for the inset with a small map extent covering the South China Sea.
 
+### Tibetan Plateau Masking (Low-level Fields)
+
+The Tibetan Plateau (average elevation ~4500 m, ~550 hPa) extends well above the 850 hPa pressure surface. Displaying 850 hPa or lower-level data over Tibet is **physically meaningless** — those pressure levels are underground. Failing to mask Tibet on low-level maps is an immediate `REVISE`.
+
+**When to mask — MANDATORY, no exceptions:**
+
+| Pressure level | Mask Tibet? | Reason |
+|---|---|---|
+| 1000, 925, 850 hPa | **YES — ALWAYS** | Entirely below Tibetan Plateau surface |
+| 700 hPa | **Recommended** | Most of the plateau is above this level |
+| 500 hPa and above | No | Above plateau surface |
+
+**What to mask:** Wind fields (vectors, streamlines, wind speed), geopotential height, temperature, humidity, vorticity, divergence — **any variable** plotted at ≤ 850 hPa that covers a region including the Tibetan Plateau.
+
+**Shapefile path:** `~/code/data/map/Tibet/Tibet.shp`
+
+**Method — white polygon overlay (recommended):**
+
+```python
+import geopandas as gpd
+import cartopy.crs as ccrs
+
+# Read shapefile (do this ONCE, outside plotting loops)
+tibet = gpd.read_file("~/code/data/map/Tibet/Tibet.shp")
+
+# After contourf / quiver, overlay white fill to mask Tibet
+ax.add_geometries(
+    tibet.geometry, crs=ccrs.PlateCarree(),
+    facecolor="lightgrey", edgecolor="grey",
+    linewidth=0.5, zorder=5
+)
+```
+
+**Key rules:**
+- Place the masking call **AFTER** `contourf` / `quiver` so the white polygon covers the data, but **BEFORE** adding coastlines/borders if you want borders drawn on top.
+- `zorder=5` ensures the mask sits above data fills but below annotations.
+- For multi-panel figures at the same low level, mask **every** panel — inconsistent masking is a `REVISE`.
+- If the plot domain does not include the Tibetan Plateau region (~25°N–40°N, ~70°E–105°E), masking is unnecessary.
+- For **vector/quiver plots**: mask the filled background AND ensure wind arrows over Tibet are also hidden. Mask the u/v data arrays over Tibet before calling `quiver`, or set the overlay `zorder` above the quiver arrows.
+
+**Auto-detection logic — when generating plotting code:**
+1. Check if the pressure level is ≤ 850 hPa.
+2. Check if the spatial domain overlaps the Tibetan Plateau (~25°N–40°N, ~70°E–105°E).
+3. If BOTH conditions are met → add Tibet masking automatically. Do NOT ask the user — this is a physical requirement, not a preference.
+
 ### Vectors (wind, currents)
 
 Individual arrows should be distinguishable and reveal spatial structure — no clutter, no empty patches.
@@ -158,6 +203,7 @@ ax.scatter(lon2d[sig][::3], lat2d[sig][::3], s=0.5, c="k",
 | | Comparable panels with different colormap or level range |
 | **Geography** | Wrong projection for region; missing coastlines |
 | | White gaps or seams at dateline or plot boundary |
+| | Low-level (≤ 850 hPa) field over Tibetan Plateau NOT masked — underground data displayed |
 | **Vectors** | Density inappropriate (too dense to distinguish or too sparse to see structure) |
 | | Quiver key missing, unlabeled, or poorly positioned |
 | **Stippling** | Obscures the main signal or is invisible at print resolution |
