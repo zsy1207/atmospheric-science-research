@@ -59,7 +59,7 @@ ALWAYS split into compute + plot — no monolithic scripts. Use subagents when a
 ### Compute
 
 - Save intermediates to `data_processed/*.nc` — MUST include `units` and `long_name` attributes. Missing attributes = incomplete output.
-- **Use fast tools** — Use faster, more efficient Python packages such as cdo, along with optimized algorithms like vectorized operations. Avoid slow loops and inefficient methods.
+- **Use fast tools** — Use faster, more efficient Python packages such as `cdo` and `numpy`, along with optimized algorithms like vectorized operations. Avoid slow loops and inefficient methods.
 - **Memory & dask — MANDATORY rules:**
   - **ALWAYS** open data with dask backing: `xr.open_dataset(..., chunks="auto")` / `xr.open_mfdataset(..., chunks="auto")`. NEVER omit `chunks` — loading entire datasets into RAM causes OOM on large reanalysis/model outputs.
   - **NEVER rechunk.** Do NOT call `.rechunk()` — it is expensive, triggers unnecessary data movement, and `chunks="auto"` already produces optimal chunk sizes for most workflows.
