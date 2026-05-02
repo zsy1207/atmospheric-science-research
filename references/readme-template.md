@@ -1,13 +1,11 @@
-# README 模板
+# README Template
 
-中文文档，每个项目一份 `README.md`。
-
-## 模板
+Write one Chinese `README.md` after RR reaches `PASS` for all figures. Match the actual project layout — do not restructure to fit the template.
 
 ```markdown
 # 项目说明
 
-简要说明该项目的科学目标和主要工作内容。
+简要说明科学目标和主要工作内容。
 
 ## 1. 数据简述
 
@@ -26,7 +24,7 @@
 ## 3. 实现算法与细节
 
 - 如无需展开，可写：`本任务算法直接，省略。`
-- 若有复杂处理，请写清关键公式、统计方法、重网格方案、加速策略和重要假设。
+- 若有复杂处理，写清关键公式、统计方法、重网格方案、加速策略和重要假设。
 
 ## 4. 可能存在的问题与风险
 
@@ -34,15 +32,11 @@
 
 ## 5. 图片简述
 
-- 以顶尖大气科学教授的视角，简要、专业、科学地说明每张图的内容与意义。
+- 以大气科学论文写作口径，专业、简洁地说明每张图的内容与意义。
 
 ## 6. 版本更新
 
-- （更新时填写）
+- （更新时填写日期、变更内容、影响文件）
 ```
 
-## 写作规则
-
-- 新建项目：RR 通过后写完整 README。
-- 后续修改：只在「版本更新」下追加新条目，同步更新受影响的「图片简述」和「路径结构」，不重写整份文档。
-- 路径结构按项目实际目录写，不要为套模板而重构已有目录。
+On later modification, append to「版本更新」and update only affected path/figure sections.

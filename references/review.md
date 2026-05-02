@@ -1,58 +1,59 @@
 # Review & Revision (RR)
 
-RR is a **figure-focused** review loop that catches visual defects and data sanity issues — not a science re-audit. Fix one problem at a time; one fix often resolves cascading issues.
+Bounded, figure-focused loop. Catches visual defects and obvious data-sanity problems; not a full science re-audit.
 
-**Layout is the most common source of visual defects.** Code-level parameters — figsize, spacing, colorbar dimensions, element positions — are initial estimates that rarely look right on first render. Every RR iteration should verify layout proportions in the actual PNG. Typical issues: colorbar disproportionately large, panel labels and quiver keys overlapping, elements clipped or crowded. These problems are only visible in the rendered image, not in code.
+## Loop
 
-## Steps
+1. Render the figure if needed.
+2. Open the actual PNG. Never review code alone.
+3. Check **layout** first: subplot balance, colorbar proportion, overlaps, clipping, whitespace, legend placement.
+4. Cross-check against `plot-standards.md` and the Reject Conditions table below.
+5. Check **physics**: value range, units, sign convention, pressure-axis orientation, spatial pattern.
+6. Classify:
+   - `PASS` — no visual or obvious data-sanity issue remains.
+   - `REVISE` — fix the first material issue, re-render, reopen PNG.
+   - `BLOCKED` — user decision, missing input/dependency, or unreadable output.
 
-1. **Open actual PNG.** Do NOT review code alone. Render first if figures do not exist.
-2. Check against Core Standards in SKILL.md and [plot-standards.md](plot-standards.md) quick reject checklist — **pay special attention to layout**: colorbar proportions vs panel size, element overlap (panel labels vs quiver keys), subplot spacing, and overall figure balance. Fix the first problem found immediately — do NOT batch multiple issues, as one fix may resolve others.
-3. **Holistic visual assessment — top-journal standard gate.** Step back and evaluate the figure as a whole. Ask: "Would this figure look at home in *Nature*, *Science*, or *JC*?" If the answer is no, it is an immediate `REVISE`. Common holistic failures:
-   - Overall composition feels cluttered, unbalanced, or amateurish
-   - Inconsistent styling across panels (font sizes, line weights, colorbars, label positions)
-   - Color choices clash, look garish, or lack visual hierarchy
-   - Too much visual noise — excessive gridlines, ticks, annotations competing for attention
-   - White space poorly managed — panels either crammed or swimming in emptiness
-   - The figure simply "doesn't look right" even if no single element is technically wrong — **trust this instinct and REVISE**
-4. Quick sanity glance — do values, units, sign conventions, and spatial patterns look physically plausible?
-   - Temperature in K or °C, not raw integers or implausible ranges (e.g., 500 K surface temp)
-   - Precipitation non-negative; wind speed non-negative
-   - Cyclonic vorticity sign correct per hemisphere (negative in NH for ζ)
-   - Spatial patterns make physical sense (warm SST in tropics, cold at poles, westerlies in mid-latitudes)
-   - Anomaly magnitudes reasonable for the variable and time scale
-5. Classify:
-   - Visual-only → `REVISE` plotting code only.
-   - Data/diagnostic issue → `REVISE` compute code + replot.
-   - Unresolved science question → `BLOCKED` — state what needs the user's decision.
-   - No issue → `PASS`.
-6. After `REVISE`: re-render only affected figures, re-open PNG, continue until `PASS` or `BLOCKED`.
-7. If 2 rounds fail on the same issue → stop patching. Reassess the approach — recheck data, coords, units, dtypes from scratch.
-8. Max 10 RR iterations per figure. If still not `PASS`, surface remaining issues and hand off.
+Run at least one RR iteration per figure — never declare `PASS` without going through the loop. Max 10 iterations per figure.
+
+## Top-Journal Visual Gate
+
+Even when no specific rule fails, revise if the figure would look out of place in a top atmospheric-science journal — cluttered, unbalanced, visually noisy, inconsistently styled, or hard to read.
+
+## Reject Conditions
+
+Revise immediately if any item is true.
+
+| Area | Reject if |
+|---|---|
+| Text | Centered title, `suptitle()`, source/data stamp, missing units/labels, clipped text, font < 7 pt |
+| Panels | Multi-panel without `(a)` labels; inconsistent panel styling |
+| Colormap | Not `cmaps`; no explicit levels; anomaly not centered on 0; incomparable panel scales |
+| Geography | Wrong projection, missing coastlines, dateline seam, missing relevant border / inset |
+| Tibet | ≤ 850 hPa field over Tibet not masked |
+| Vectors | Too dense / sparse, missing quiver key, bad key position or magnitude |
+| Significance | Invisible or obscures signal |
+| Layout | Crowded panels, dominant colorbar, overlap, clipping, poor whitespace |
+| Physics | Implausible values, wrong sign convention, wrong pressure-axis orientation, missing or wrong units |
 
 ## Quick Fixes
 
-**All numeric values below (shrink, pad, skip, fontsize, etc.) are starting-point suggestions, NOT prescriptions.** Always tune them based on the actual rendered PNG — figure dimensions, number of panels, data density, and projection all affect what looks right. Treat every parameter as an initial estimate to iterate from, not a fixed answer.
+Starting points; tune against the rendered PNG.
 
-| Defect | Fix |
+| Defect | First fix |
 |---|---|
-| Colorbar overlaps axis | `shrink=0.8`, `pad=0.08`, or switch `orientation` |
-| Panel label clips | `ax.text(-0.02, 1.03, ...)` with `transform=ax.transAxes` |
-| White seam at 180° | Add `transform=ccrs.PlateCarree()`, use `ax.set_global()` |
-| Ticks overlap | Reduce font; `MaxNLocator(nbins=5)` or `FixedLocator` |
-| Stippling invisible | Increase marker size or switch to `hatches=["..."]` |
-| Stippling too dense | Increase subsampling `[::4]` or reduce marker size; high-res data needs more skipping |
-| Legend obscures data | `bbox_to_anchor=(1.02, 1)` outside axes |
-| Fill colors washed out | Tighten `levels` to 2nd–98th percentile of the data range |
-| Quiver too dense or sparse | Adjust skip: 1° → 3–5, 0.25° → 8–15, 2.5° → 1–2; larger domain needs more |
-| Quiver key bad position or magnitude | Place outside axes at **top-right**: `quiverkey(Q, 1.0, 1.04, ref_val, "X m/s", labelpos="W", coordinates="axes")`. Ref magnitude = round number near **median** speed |
-| Subplots too tight | `constrained_layout_pads(hspace=0.08, wspace=0.08)` |
-| Gridline labels overlap at edges | `gl.top_labels = False; gl.right_labels = False` |
-| Anomaly not centered at 0 | Use symmetric `levels`: e.g., `np.arange(-5, 5.5, 0.5)` with diverging colormap |
-| Colorbar label missing units | Add `cbar.set_label("Variable (units)", fontsize=10)` |
-| Cross-section y-axis not inverted | `ax.invert_yaxis()` or `ax.set_ylim(1000, 100)` |
-| Colorbar dominates 1×N layout | `shrink=0.5–0.7`; or `GridSpec` with narrow colorbar column: `width_ratios=[1,1,1,0.05]` |
-| Panel labels & quiver keys overlap | Move quiver key to top-right: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
-| Horizontal panels too squashed | Switch to vertical stacking or 2×2 grid — maps need height for latitude range |
-| Layout looks wrong despite "correct" code | **All layout params are estimates.** Adjust figsize, shrink, pad, wspace/hspace based on rendered PNG, not theory |
-| 850 hPa (or lower) field shows data over Tibet | **Must mask.** Add `ax.add_geometries(tibet.geometry, ccrs.PlateCarree(), facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5)` using `~/code/data/map/Tibet/Tibet.shp`. See plot-standards.md § "Tibetan Plateau Masking" |
+| Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, `aspect=25–40`, or dedicated `GridSpec` slot |
+| Panel label clips | `ax.set_title(..., loc="left")`; increase top margin |
+| Quiver key overlaps label | Move to top-right: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
+| Quiver too dense / sparse | Adjust skip: 2.5° → 1–2, 1° → 3–5, 0.25° → 8–15 |
+| Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable |
+| Gridline edge labels collide | `gl.top_labels = False; gl.right_labels = False` |
+| Dateline seam | Check `transform=ccrs.PlateCarree()`, cyclic point, central longitude |
+| Anomaly not centered | Symmetric levels around 0 + diverging `cmaps` |
+| Fill washed out / saturated | Inspect summary range; reset common interpretable levels |
+| Stippling invisible | Increase marker size / alpha or use sparse hatching `"..."` |
+| Stippling too dense | Increase subsampling or reduce marker size / alpha |
+| Legend hides data | Move outside axes with `bbox_to_anchor` |
+| Cross-section / profile wrong | Invert pressure axis; verify hPa units and ordering |
+| Tibet not masked | Add grey Tibet polygon; hide low-level arrows over Tibet |
+| Layout still wrong | Change figure geometry or `GridSpec`; code parameters are only estimates |
