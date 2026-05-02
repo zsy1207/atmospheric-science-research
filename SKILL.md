@@ -38,7 +38,7 @@ If multiple valid interpretations exist (e.g., "annual mean" could be calendar-y
 
 5. **Separate compute from plot — ALWAYS.** Atmospheric computations (regridding, EOF, climatology) are expensive. NEVER mix compute and plot in the same script. Compute saves to disk; plot reads from disk. No exceptions.
 
-6. **NO environment setup — EVER.** All packages are pre-installed. NEVER run `pip install`, `conda install`, import checks, or version probes. These waste time and clutter output.
+6. **Scripts must run directly.** Write and invoke scripts so they can run without extra runtime arguments (for example, use `python xxx.py`, not `python xxx.py --xxx`).
 
 ## Workflow
 
