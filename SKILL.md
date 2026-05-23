@@ -42,12 +42,11 @@ Read references on demand:
 ## Compute Rules
 
 - **Use fast tools** — Use faster, more efficient Python packages such as `cdo`, `dask` and `numpy`, along with optimized algorithms like vectorized operations. Avoid slow loops and inefficient methods.
-- **NetCDF (single file)** — `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")`; raw fields stay lazy until NetCDF write.
-- **NetCDF (multi file)** — `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")`.
-- **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent. 
-- Do not rechunk. Do not load ( ) unless necessary.
+- **NetCDF (single file)** — Try `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` first. If it fails (e.g. due to NetCDF3 format or missing `h5netcdf`/`dask` package), fallback to `engine="netcdf4"` (or default engine) and adjust chunks. Raw fields stay lazy until NetCDF write.
+- **NetCDF (multi file)** — Try `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` first. Fallback to default engine or disable parallel if Dask is not installed or configured.
+- **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent.
+- Do not rechunk. Do not call `.load()` unless necessary.
 - **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), extract the source field with **at least 2 grid points of padding on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and from interpolation/regrid artifacts at the boundary.
-- Verify coordinate names, longitude convention, calendars, pressure units/order, missing values, and area weighting before diagnostics.
 
 ## Plot Rules
 
@@ -57,11 +56,11 @@ Full standards in `references/plot-standards.md`. Required:
 - `import cmaps` + explicit discrete `levels`. Sequential for absolute fields; diverging, symmetric, 0-centered for anomalies.
 - Comparable panels share cmap and levels unless units differ.
 - Colormap and levels must be visually reasonable and scientifically meaningful: avoid washed-out signals, saturation, false boundaries, or scales that exaggerate noise.
-- Use Arial for new figures; preserve an existing project font only when patching to avoid style drift. Write units exponentially, e.g. `W m–2`, `kg m–2 s–1`, `m s–1`.
+- Use Arial for new figures; preserve an existing project font only when patching to avoid style drift. Write units exponentially, e.g. `W m−2`, `kg m−2 s−1`, `m s−1`.
 - On maps, show latitude/longitude, add coastlines, and omit national/provincial borders unless scientifically needed.
-- Wind vectors must have scientifically interpretable reference magnitudes and visually appropriate size/density: arrows should reveal circulation structure without clutter or empty-looking fields. Sensible density, visible circulation, and a top-right quiver key with a rounded reference magnitude.
+- Vectors must have scientifically interpretable reference magnitudes and visually appropriate size/density: arrows should reveal circulation structure without clutter or empty-looking fields. Sensible density, visible circulation, and a top-right quiver key with a rounded reference magnitude.
 - Make significance visible but subordinate: subsampled dots/stippling; positive and negative signs should be distinguishable without obscuring the field.
-- Panel labels only: `ax.set_title("a", loc="left")` and brief, necessary descriptions. No `suptitle`, caption, centered title, or data stamp.
+- Put only bold panel letters in the upper-left. Put necessary descriptions in the upper-right or row/column labels. Do not use figure-level `suptitle`, default centered axis titles, captions, or data stamps.
 - Export PNG @ 600 ppi (`dpi=600`); `plt.close(fig)`.
 
 ## RR Rules

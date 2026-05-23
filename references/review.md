@@ -26,8 +26,8 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font is not Arial, centered title, `suptitle()`, source/data stamp, missing units/labels, units not written exponentially, clipped text, font < 7 pt |
-| Panels | Multi-panel without left panel labels such as `a`, `b`, ... via `ax.set_title(..., loc="left")`; inconsistent panel styling |
+| Text | Font is not Arial, default centered axis title, figure-level `suptitle()`, caption, source/data stamp, missing units/labels, units not written exponentially, clipped text, font < 7 pt |
+| Panels | Multi-panel without bold upper-left panel letters such as `a`, `b`, ...; descriptions placed as centered titles instead of upper-right text or row/column labels; inconsistent panel styling |
 | Colormap | Not `cmaps`; no explicit levels; anomaly not centered on 0; incomparable panel scales |
 | Geography | Wrong projection, missing coastlines, unnecessary national/provincial borders, missing latitude/longitude indication, dateline seam, missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |

@@ -50,7 +50,7 @@ Set scientifically interpretable levels from domain knowledge. Don't auto-scale 
 
 - Horizontal colorbars work well below maps and compact multi-panel groups.
 - Vertical colorbars work well for standalone maps or right-side shared legends.
-- Use short unit labels: `SST anomaly (°C)`, `Wind speed (m s–1)`, `Precipitation (mm day–1)`.
+- Use short unit labels: `SST anomaly (°C)`, `Wind speed (m s−1)`, `Precipitation (mm day−1)`.
 - Avoid colorbars longer than the panel group they describe.
 - Use the same ticks and limits for comparable panels.
 
@@ -73,6 +73,13 @@ Set scientifically interpretable levels from domain knowledge. Don't auto-scale 
 | Polar | `NorthPolarStereo` / `SouthPolarStereo` |
 
 - For global fields, add a cyclic point or roll coordinates to avoid a dateline seam.
+  ```python
+  # Add a cyclic longitude point for seamless global mapping:
+  from cartopy.util import add_cyclic_point
+  # Assuming `da` is an xarray.DataArray with dims (lat, lon)
+  cyclic_data, cyclic_lon = add_cyclic_point(da.values, coord=da['lon'].values, axis=-1)
+  # Then plot with: ax.contourf(cyclic_lon, da['lat'].values, cyclic_data, transform=ccrs.PlateCarree())
+  ```
 - **Always pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
 
 ## Layout
@@ -83,7 +90,7 @@ Use Arial for all figure text:
 plt.rcParams["font.family"] = "Arial"
 ```
 
-Units must be written exponentially, e.g. `W m–2`, `kg m–2 s–1`, `m s–1`. Do not use slash notation such as `W/m^2`.
+Units must be written exponentially, e.g. `W m−2`, `kg m−2 s−1`, `m s−1`. Do not use slash notation such as `W/m^2`.
 
 Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
 
@@ -97,25 +104,20 @@ Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1
 | 6-panel (3×2) | `(7.48, 6.5)`–`(7.48, 8.0)` | 2 |
 | Hard ceiling | `(7.48, 9.06)` | — |
 
-Pick the smallest size that keeps labels readable at print scale — AGU rejects oversized source files that imply downscaling.
-
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
 - Minimum readable font 7 pt; prefer 8–11 pt for ticks, labels, legends, colorbars.
 - For 3+ map panels, prefer vertical stacking or 2×2 / 3×2 over a cramped 1×N row.
 
-### Panel labels
+### Panel labels and descriptions
 
 - Use lower-case bold upright labels: `a`, `b`, `c`, ...
-- Place labels at the upper-left of each panel or slightly outside the axes.
+- Place only panel letters at the upper-left of each panel or slightly outside the axes.
 - Align labels across rows/columns.
 - Do not include punctuation after panel letters.
-
-### Titles
-
-- Use short, descriptive panel titles.
-- Avoid redundant titles when rows/columns already have labels.
-- For experiments, use compact labels like `Historical`, `SSP5-8.5`, `El Niño composite`, `La Niña composite`.
+- Put necessary descriptions in the upper-right or row/column labels.
+- Use compact descriptors such as `Historical`, `SSP5-8.5`, `El Niño composite`, or `La Niña composite` only where they clarify the comparison.
+- Do not use figure-level `suptitle`, default centered axis titles, captions, or data stamps.
 
 ### Spacing
 
@@ -135,7 +137,7 @@ Pick the smallest size that keeps labels readable at print scale — AGU rejects
 
 - Coastlines by default. Do not draw national/provincial borders by default; add them only when scientifically or geographically necessary.
 - Indicate latitude and longitude on every map with ticks or gridline labels.
-- Gridlines: `draw_labels=True`; disable top/right labels; tick font 8–10 
+- Gridlines: `draw_labels=True`; disable top/right labels; tick font 8–10 pt.
 - Use dashed red/blue boxes for study regions; linewidth `1.2–2.0` and high zorder.
 
 ## Tibetan Plateau Masking
@@ -150,18 +152,40 @@ For plots covering ~25°N–40°N, 70°E–105°E, mask low-level data over Tibe
 
 Applies to wind, height, temperature, humidity, vorticity, divergence — any pressure-level field at or below 850 hPa.
 
+### 1. Physical Masking (Computation Phase)
+In the computation phase, mask grid points that lie below the topography (underground) by setting their values to `NaN`. This prevents contour interpolation errors and unphysical diagnostics.
+- **Rule**: Set grid points to `NaN` if the topography height ($Z_{topo}$) is higher than the isobaric surface height ($Z_{level}$), or if the surface pressure ($P_s$) is lower than the target pressure level ($P_{level}$, e.g., $P_s < 850$ hPa).
+- **Example**: 850 hPa level corresponds to ~1500 m, whereas the Tibetan Plateau average height is >4000 m.
+
+```python
+# Assuming data is an xarray.DataArray at 850 hPa, and ps is surface pressure (hPa)
+# Method A: Using surface pressure
+data_masked = data.where(ps >= 850)
+
+# Method B: Using topography height (m) where orog is the terrain height
+# 850 hPa corresponds to ~1500m
+data_masked = data.where(orog < 1500)
+```
+
+### 2. Visual Masking (Plotting Phase)
+In addition to physical masking, overlay a grey polygon over the Tibetan Plateau to cleanly present the topography boundary:
+
 ```python
 import geopandas as gpd
 import cartopy.crs as ccrs
+import os
 
-tibet = gpd.read_file("~/code/data/map/Tibet/Tibet.shp")
-ax.add_geometries(
-    tibet.geometry, crs=ccrs.PlateCarree(),
-    facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5,
-)
+# Always check if the shapefile exists before reading
+tibet_shp = os.path.expanduser("~/code/data/map/Tibet/Tibet.shp")
+if os.path.exists(tibet_shp):
+    tibet = gpd.read_file(tibet_shp)
+    ax.add_geometries(
+        tibet.geometry, crs=ccrs.PlateCarree(),
+        facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5,
+    )
 ```
 
-Place the mask after filled/vector layers, before final borders/annotations. For quiver, also mask `u`/`v` over Tibet or place the polygon above arrows.
+Place the visual mask after filled/vector layers, before final borders/annotations. For quiver, also mask `u`/`v` over Tibet or place the polygon above arrows.
 
 ## Vectors and Contours
 
@@ -178,7 +202,7 @@ Goal: arrows distinguishable, field structure visible.
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), color="#555555",
               scale=200, width=0.003, zorder=3)
-ax.quiverkey(Q, 0.90, 1.046, 10, "10 m s–1", labelpos="E",
+ax.quiverkey(Q, 0.90, 1.046, 10, "10 m s−1", labelpos="E",
              coordinates="axes", fontproperties={"size": 9}, labelsep=0.05)
 ```
 
@@ -289,3 +313,5 @@ Volcano plots are not core atmos/ocean diagnostics but may appear in interdiscip
 fig.savefig("path.png", dpi=600, bbox_inches="tight", pad_inches=0.05)
 plt.close(fig)
 ```
+
+`bbox_inches="tight"` may shrink the final canvas by up to ±5% from the `figsize` in the AGU width table; treat the listed sizes as targets, not exact constraints.
