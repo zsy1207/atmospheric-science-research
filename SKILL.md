@@ -44,7 +44,9 @@ Read references on demand:
 - **Use fast tools** — Use faster, more efficient Python packages such as `cdo`, `dask` and `numpy`, along with optimized algorithms like vectorized operations. Avoid slow loops and inefficient methods.
 - **NetCDF (single file)** — `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")`; raw fields stay lazy until NetCDF write.
 - **NetCDF (multi file)** — `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")`.
-- **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent. Do not rechunk.
+- **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent. 
+- Do not rechunk. Do not load ( ) unless necessary.
+- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), extract the source field with **at least 2 grid points of padding on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and from interpolation/regrid artifacts at the boundary.
 - Verify coordinate names, longitude convention, calendars, pressure units/order, missing values, and area weighting before diagnostics.
 
 ## Plot Rules

@@ -31,6 +31,8 @@ MUST:
 - Include zero in ticks.
 - Use matched positive and negative limits unless justified.
 - Use `TwoSlopeNorm(vcenter=0)` or explicit symmetric `BoundaryNorm`.
+- Pass `extend="both"` to `contourf` / `colorbar` so out-of-range values render as extension triangles, not as silently clipped fill.
+- For comparable panels, build **one shared `BoundaryNorm`** once and pass it to every panel — never let panels recompute their own norm.
 
 ### Sequential scale
 
@@ -39,6 +41,8 @@ MUST:
 - Use monotonic lightness when possible.
 - Avoid using categorical colors for continuous variables.
 - Use physically meaningful endpoints and ticks.
+- Pass `extend="both"` (or `"max"` / `"min"` when one tail is physically closed, e.g. precipitation ≥ 0) whenever values can exceed `levels`.
+- For comparable panels, share a single `BoundaryNorm` and `levels` array across all panels.
 
 Set scientifically interpretable levels from domain knowledge. Don't auto-scale per panel. If the signal is hidden or saturated, inspect summary ranges, then set common readable levels.
 
@@ -69,6 +73,7 @@ Set scientifically interpretable levels from domain knowledge. Don't auto-scale 
 | Polar | `NorthPolarStereo` / `SouthPolarStereo` |
 
 - For global fields, add a cyclic point or roll coordinates to avoid a dateline seam.
+- **Always pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
 
 ## Layout
 
@@ -80,15 +85,19 @@ plt.rcParams["font.family"] = "Arial"
 
 Units must be written exponentially, e.g. `W m–2`, `kg m–2 s–1`, `m s–1`. Do not use slash notation such as `W/m^2`.
 
-Starting figure sizes:
+Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
 
-| Layout | Size |
-|---|---|
-| Single map | `(10, 6)`–`(12, 8)` |
-| 2-panel side-by-side | `(14, 5)`–`(16, 6)` |
-| 2-panel stacked | `(10, 10)`–`(12, 12)` |
-| 4-panel | `(12, 10)`–`(14, 12)` |
-| 6-panel | `(16, 10)`–`(18, 12)` |
+| Layout | `figsize` (in) | Column |
+|---|---|---|
+| Single map, compact | `(3.74, 2.6)`–`(3.74, 3.5)` | 1 |
+| Single map, full width | `(7.48, 4.5)`–`(7.48, 6.0)` | 2 |
+| 2-panel side-by-side | `(7.48, 3.0)`–`(7.48, 3.8)` | 2 |
+| 2-panel stacked | `(3.74, 4.8)`–`(3.74, 5.6)` | 1 |
+| 4-panel (2×2) | `(7.48, 5.0)`–`(7.48, 6.5)` | 2 |
+| 6-panel (3×2) | `(7.48, 6.5)`–`(7.48, 8.0)` | 2 |
+| Hard ceiling | `(7.48, 9.06)` | — |
+
+Pick the smallest size that keeps labels readable at print scale — AGU rejects oversized source files that imply downscaling.
 
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
