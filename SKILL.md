@@ -23,7 +23,6 @@ Read references on demand:
 |---|---|
 | New analysis on local data | Full Workflow (1–7) |
 | Figure-only fix on existing project | Patch Mode (skip 1–4, run 5–6) |
-| Inspect data without producing figures | Workflow step 1 only |
 
 ## Workflow
 
