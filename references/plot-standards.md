@@ -116,7 +116,7 @@ Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1
 - Align labels across rows/columns.
 - Do not include punctuation after panel letters.
 - Put necessary descriptions in the upper-right or row/column labels.
-- Use compact descriptors such as `Historical`, `SSP5-8.5`, `El Niño composite`, or `La Niña composite` only where they clarify the comparison.
+- Use compact descriptors such as `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`, or `La Niña composite` only where they clarify the comparison.
 - Do not use figure-level `suptitle`, default centered axis titles, captions, or data stamps.
 
 ### Spacing
@@ -153,18 +153,12 @@ For plots covering ~25°N–40°N, 70°E–105°E, mask low-level data over Tibe
 Applies to wind, height, temperature, humidity, vorticity, divergence — any pressure-level field at or below 850 hPa.
 
 ### 1. Physical Masking (Computation Phase)
-In the computation phase, mask grid points that lie below the topography (underground) by setting their values to `NaN`. This prevents contour interpolation errors and unphysical diagnostics.
-- **Rule**: Set grid points to `NaN` if the topography height ($Z_{topo}$) is higher than the isobaric surface height ($Z_{level}$), or if the surface pressure ($P_s$) is lower than the target pressure level ($P_{level}$, e.g., $P_s < 850$ hPa).
-- **Example**: 850 hPa level corresponds to ~1500 m, whereas the Tibetan Plateau average height is >4000 m.
+Keep grid points where `ps ≥ P_level`; mask the rest (they lie below the topography).
 
 ```python
-# Assuming data is an xarray.DataArray at 850 hPa, and ps is surface pressure (hPa)
-# Method A: Using surface pressure
-data_masked = data.where(ps >= 850)
-
-# Method B: Using topography height (m) where orog is the terrain height
-# 850 hPa corresponds to ~1500m
-data_masked = data.where(orog < 1500)
+# data at P_level (hPa); ps in hPa. ERA5 raw `sp` is in Pa — convert first,
+# else `ps >= 850` silently masks the entire field.
+data_masked = data.where(ps >= 850)   # generalize: ps >= P_level
 ```
 
 ### 2. Visual Masking (Plotting Phase)

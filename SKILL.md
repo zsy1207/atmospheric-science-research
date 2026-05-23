@@ -41,7 +41,7 @@ Read references on demand:
 
 ## Compute Rules
 
-- **Use fast tools** — Use faster, more efficient Python packages such as `cdo`, `dask` and `numpy`, along with optimized algorithms like vectorized operations. Avoid slow loops and inefficient methods.
+- **Use fast tools** — Vectorize: `xr.where` / boolean masks instead of `for` over grid points. Reduce: `.mean(dim=..., skipna=True)` (and `.sum` / `.std` likewise) for dim-aware ops that preserve coords. Regrid: prefer `cdo remap*` (or `xesmf`) over hand-rolled interpolation.
 - **NetCDF (single file)** — Try `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` first. If it fails (e.g. due to NetCDF3 format or missing `h5netcdf`/`dask` package), fallback to `engine="netcdf4"` (or default engine) and adjust chunks. Raw fields stay lazy until NetCDF write.
 - **NetCDF (multi file)** — Try `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` first. Fallback to default engine or disable parallel if Dask is not installed or configured.
 - **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent.
@@ -75,3 +75,5 @@ Full procedure in `references/review.md`. Required:
 ## Patch Mode
 
 For figure-only fixes: read existing code, make the smallest safe change, re-render only affected figures, then RR. Do not rewrite compute code or reorganize directories.
+
+If RR or inspection reveals a compute bug (wrong variable, unit error, bad climatology baseline, missing area weighting, etc.), stop patching and escalate to the Full Workflow from step 2 (Plan).
