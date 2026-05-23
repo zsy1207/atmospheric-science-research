@@ -16,7 +16,7 @@ Write one Chinese `README.md` after RR reaches `PASS` for all figures. Match the
 
 ## 2. 路径结构和实现功能
 
-- `data_processed/xxx.nc`：实现功能
+- `data_output/fig1/xxx.nc`：实现功能
 - `fig1/compute_xxx.py`：实现功能
 - `fig1/plot_xxx.py`：实现功能
 - `fig1/fig1_xxx.png`：实现功能
