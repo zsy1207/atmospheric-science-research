@@ -27,32 +27,28 @@ Read before writing or changing plot code. The rendered PNG, not code parameters
 
 MUST:
 
-- Center at zero.
-- Include zero in ticks.
-- Use matched positive and negative limits unless justified.
-- Use `TwoSlopeNorm(vcenter=0)` or explicit symmetric `BoundaryNorm`.
-- Pass `extend="both"` to `contourf` / `colorbar` so out-of-range values render as extension triangles, not as silently clipped fill.
-- For comparable panels, build **one shared `BoundaryNorm`** once and pass it to every panel — never let panels recompute their own norm.
+- Center at zero; include zero in ticks; use matched positive/negative limits unless justified.
+- Use `TwoSlopeNorm(vcenter=0)` or an explicit symmetric `BoundaryNorm`.
+- Pass `extend="both"` to `contourf` / `colorbar` so out-of-range values render as extension triangles, not silently clipped fill.
+- For comparable panels, build **one shared `BoundaryNorm`** once and reuse it across every panel — never let panels recompute their own norm.
 
 ### Sequential scale
 
 MUST:
 
-- Use monotonic lightness when possible.
-- Avoid using categorical colors for continuous variables.
+- Use monotonic lightness; avoid categorical colors for continuous variables.
 - Use physically meaningful endpoints and ticks.
 - Pass `extend="both"` (or `"max"` / `"min"` when one tail is physically closed, e.g. precipitation ≥ 0) whenever values can exceed `levels`.
 - For comparable panels, share a single `BoundaryNorm` and `levels` array across all panels.
 
-Set scientifically interpretable levels from domain knowledge. Don't auto-scale per panel. If the signal is hidden or saturated, inspect summary ranges, then set common readable levels.
+Set scientifically interpretable levels from domain knowledge. Never auto-scale per panel. If the signal is hidden or saturated, inspect summary ranges, then set common readable levels.
 
 ### Colorbar design
 
-- Horizontal colorbars work well below maps and compact multi-panel groups.
-- Vertical colorbars work well for standalone maps or right-side shared legends.
-- Use short unit labels: `SST anomaly (°C)`, `Wind speed (m s−1)`, `Precipitation (mm day−1)`.
-- Avoid colorbars longer than the panel group they describe.
-- Use the same ticks and limits for comparable panels.
+- Horizontal colorbars below maps and compact multi-panel groups; vertical for standalone maps or right-side shared legends.
+- Short unit labels: `SST anomaly (°C)`, `Wind speed (m s−1)`, `Precipitation (mm day−1)`.
+- Never longer than the panel group it describes.
+- Same ticks and limits across comparable panels.
 
 ### Forbidden
 
@@ -74,13 +70,12 @@ Set scientifically interpretable levels from domain knowledge. Don't auto-scale 
 
 - For global fields, add a cyclic point or roll coordinates to avoid a dateline seam.
   ```python
-  # Add a cyclic longitude point for seamless global mapping:
   from cartopy.util import add_cyclic_point
-  # Assuming `da` is an xarray.DataArray with dims (lat, lon)
-  cyclic_data, cyclic_lon = add_cyclic_point(da.values, coord=da['lon'].values, axis=-1)
-  # Then plot with: ax.contourf(cyclic_lon, da['lat'].values, cyclic_data, transform=ccrs.PlateCarree())
+  # da: xarray.DataArray with dims (lat, lon)
+  cyclic_data, cyclic_lon = add_cyclic_point(da.values, coord=da["lon"].values, axis=-1)
+  ax.contourf(cyclic_lon, da["lat"].values, cyclic_data, transform=ccrs.PlateCarree())
   ```
-- **Always pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
+- **Pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
 
 ## Layout
 
@@ -90,7 +85,7 @@ Use Arial for all figure text:
 plt.rcParams["font.family"] = "Arial"
 ```
 
-Units must be written exponentially, e.g. `W m−2`, `kg m−2 s−1`, `m s−1`. Do not use slash notation such as `W/m^2`.
+Write units exponentially: `W m−2`, `kg m−2 s−1`, `m s−1`. Never slash notation (`W/m^2`).
 
 Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
 
@@ -111,34 +106,31 @@ Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1
 
 ### Panel labels and descriptions
 
-- Use lower-case bold upright labels: `a`, `b`, `c`, ...
-- Place only panel letters at the upper-left of each panel or slightly outside the axes.
-- Align labels across rows/columns.
-- Do not include punctuation after panel letters.
-- Put necessary descriptions in the upper-right or row/column labels.
-- Use compact descriptors such as `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`, or `La Niña composite` only where they clarify the comparison.
-- Do not use figure-level `suptitle`, default centered axis titles, captions, or data stamps.
+- Lower-case bold upright labels: `a`, `b`, `c`, ...; aligned across rows/columns; no punctuation after the letter.
+- Panel letters at the upper-left of each panel (or slightly outside the axes); descriptions go upper-right or as row/column labels.
+- Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
+- No figure-level `suptitle`, default centered axis titles, captions, or data stamps.
 
 ### Spacing
 
-- Keep whitespace minimal but not cramped.
-- Use `constrained_layout=True` or `GridSpec` with explicit ratios.
-- For Cartopy maps, check layout after adding colorbars because GeoAxes often produce unexpected spacing.
-- Do not let colorbars determine the whole figure geometry.
+- Whitespace minimal but not cramped.
+- `constrained_layout=True` or `GridSpec` with explicit ratios.
+- For Cartopy maps, recheck layout after adding colorbars — GeoAxes often produce unexpected spacing.
+- Colorbars never determine the whole figure geometry.
 
 ### Shared elements
 
-- Shared colorbar: use for the same variable and scale.
-- Shared legend: use for repeated categories across panels.
-- Shared axis labels: use when a grid of statistical plots repeats the same axes.
-- Shared annotation: place in margin only if it clarifies the entire figure.
+- Shared colorbar for the same variable and scale.
+- Shared legend for repeated categories across panels.
+- Shared axis labels for a grid of statistical plots with repeating axes.
+- Shared annotation in margin only if it clarifies the entire figure.
 
 ## Maps
 
-- Coastlines by default. Do not draw national/provincial borders by default; add them only when scientifically or geographically necessary.
-- Indicate latitude and longitude on every map with ticks or gridline labels.
+- Coastlines by default. No national/provincial borders unless scientifically/geographically necessary.
+- Indicate latitude/longitude on every map via ticks or gridline labels.
 - Gridlines: `draw_labels=True`; disable top/right labels; tick font 8–10 pt.
-- Use dashed red/blue boxes for study regions; linewidth `1.2–2.0` and high zorder.
+- Dashed red/blue boxes for study regions; linewidth `1.2–2.0`, high zorder.
 
 ## Tibetan Plateau Masking
 
@@ -162,14 +154,13 @@ data_masked = data.where(ps >= 850)   # generalize: ps >= P_level
 ```
 
 ### 2. Visual Masking (Plotting Phase)
-In addition to physical masking, overlay a grey polygon over the Tibetan Plateau to cleanly present the topography boundary:
+Overlay a grey polygon to present the topography boundary cleanly:
 
 ```python
 import geopandas as gpd
 import cartopy.crs as ccrs
 import os
 
-# Always check if the shapefile exists before reading
 tibet_shp = os.path.expanduser("~/code/data/map/Tibet/Tibet.shp")
 if os.path.exists(tibet_shp):
     tibet = gpd.read_file(tibet_shp)
@@ -179,18 +170,18 @@ if os.path.exists(tibet_shp):
     )
 ```
 
-Place the visual mask after filled/vector layers, before final borders/annotations. For quiver, also mask `u`/`v` over Tibet or place the polygon above arrows.
+Place the visual mask after filled/vector layers and before final borders/annotations. For quiver, also mask `u`/`v` over Tibet or place the polygon above arrows.
 
 ## Vectors and Contours
 
 Goal: arrows distinguishable, field structure visible.
 
-- Use muted grey arrows (`#555555`) with width `0.0025–0.004`; avoid black arrow fields unless sparse.
+- Muted grey arrows (`#555555`), width `0.0025–0.004`; avoid black arrow fields unless sparse.
 - Skip factor by resolution: 2.5° → 1–2; 1° → 3–5; 0.25° → 8–15. Larger domains need more skipping.
-- Reference magnitude: rounded value near median speed, not maximum.
-- Place quiver key outside/top-right; top-left is reserved for panel letters.
-- For dense or warped vector fields, use Cartopy `regrid_shape=20` as a first guess.
-- Overlay contours only when they add physical interpretation; use thin dark grey/black lines and labels that do not dominate.
+- Reference magnitude: rounded value near the median speed, not the maximum.
+- Quiver key outside/top-right; top-left is reserved for panel letters.
+- For dense or warped fields, try Cartopy `regrid_shape=20` as a first guess.
+- Overlay contours only when they add physical interpretation; thin dark grey/black lines, labels that do not dominate.
 
 ```python
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
@@ -205,9 +196,9 @@ ax.quiverkey(Q, 0.90, 1.046, 10, "10 m s−1", labelpos="E",
 Make significance visible without obscuring the field.
 
 - Hatching: sparse `"..."`; avoid dense `"/////"` or `"xxxxx"`.
-- Scatter: choose marker size against the rendered PNG; start around 0.3–1.0 with alpha 0.4–0.6.
-- Use dark gray/black with alpha 0.35–0.7; avoid saturated stippling colors.
-- Subsample every 2–4 grid points when needed. High-resolution grids need stronger subsampling to avoid black patches while preserving significant-region structure.
+- Scatter: tune marker size against the rendered PNG; start `0.3–1.0` with alpha `0.4–0.6`.
+- Dark grey/black with alpha `0.35–0.7`; avoid saturated stippling colors.
+- Subsample every 2–4 grid points; high-resolution grids need stronger subsampling to avoid black patches while preserving significant-region structure.
 
 ```python
 ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
@@ -217,46 +208,43 @@ ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
 
 ## Gridlines and tick labels
 
-- Use sparse, readable lon/lat labels.
-- Avoid labeling every gridline; typical intervals are 30°/60° globally and 5°/10°/20° regionally.
-- Do not use both dense tick labels and dense gridlines.
-- For multi-panel maps, label only the left column and bottom row when possible.
+- Sparse, readable lon/lat labels; typical intervals 30°/60° globally and 5°/10°/20° regionally.
+- Never combine dense tick labels with dense gridlines.
+- Multi-panel maps: label only the left column and bottom row when possible.
 
 ## Contour overlays
 
-- Use contour overlays to clarify gradients, zero crossings, or physically meaningful thresholds.
-- Label only selected contours. Too many contour labels degrade readability.
-- Zero contour: dark neutral or black, 0.8–1.0 pt.
-- Secondary contours: 0.4–0.6 pt, moderate alpha.
+- Use to clarify gradients, zero crossings, or physically meaningful thresholds.
+- Label selected contours only — too many labels degrade readability.
+- Zero contour: dark neutral or black, `0.8–1.0` pt.
+- Secondary contours: `0.4–0.6` pt, moderate alpha.
 
 ## Other Figure Types
 
 ### Time series
 
-- Use thin lines with restrained markers.
-- Use zero/reference lines for anomaly indices; red/orange for heatwave/positive index, light blue bars for precipitation/paired index when appropriate.
-- Show uncertainty using shaded confidence bands, ensemble spread, or error bars when available.
-- Use seasonal/year tick locators deliberately; avoid overcrowded date labels.
-- Use direct labels for 2–4 lines when clearer than a legend.
+- Thin lines with restrained markers; zero/reference lines for anomaly indices (red/orange for heatwave or positive index, light blue bars for precipitation or paired index).
+- Show uncertainty via shaded confidence bands, ensemble spread, or error bars.
+- Seasonal/year tick locators deliberate; no overcrowded date labels.
+- Direct labels for 2–4 lines when clearer than a legend.
 - Annotate correlation, p markers, and highlighted years sparingly.
 
 ### Seasonal cycle
 
-- Use month labels or compact month initials.
-- Show climatology and experiments with consistent line styles.
-- Use shaded spread if comparing ensembles.
-- Keep y-axis units explicit.
+- Month labels or compact month initials.
+- Consistent line styles between climatology and experiments; shaded spread for ensembles.
+- Explicit y-axis units.
 
 ### Scatter and regression
 
-- Use semi-transparent small markers; alpha for dense data.
-- Add regression line and confidence interval only when statistically justified.
+- Semi-transparent small markers; lower alpha for dense data.
+- Regression line and confidence interval only when statistically justified.
 - Report `r`, `R²`, slope, or p-value in a small annotation if central to the result.
-- Do not use oversized bubble markers unless size is a meaningful third variable.
+- No oversized bubble markers unless size is a meaningful third variable.
 
 ### Cross-section / profile
 
-- Pressure axis inverted (1000 bottom → 100 top). Use symlog only when scientifically justified.
+- Pressure axis inverted (1000 bottom → 100 top); symlog only when scientifically justified.
 - Fill topography/orography in grey.
 
 ### Hovmöller
@@ -265,41 +253,39 @@ ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
 
 ### Heatmaps and correlation matrices
 
-- Use diverging scales for correlations and signed differences.
-- Center correlation scales at zero and set limits to `[-1, 1]` unless comparing a restricted range deliberately.
-- Use square cells for matrices when possible.
-- Rotate labels only as much as needed.
-- Mark significance with small dots, outlines, or hatches rather than overprinting numbers in every cell.
+- Diverging scales for correlations and signed differences; center at zero with limits `[-1, 1]` unless deliberately restricted.
+- Square cells when possible; rotate labels only as needed.
+- Mark significance with small dots, outlines, or hatches — never overprint numbers in every cell.
 
 ### Box, violin, and bar plots
 
-- Prefer showing the distribution when sample size is small or moderate: jittered points, box + points, or violin + median.
-- Use bars for aggregated quantities only when the aggregate is the message.
-- Show uncertainty: standard error, confidence interval, interquartile range, or ensemble spread.
-- Do not use 3D bars or gradient-filled bars.
+- Prefer the distribution for small/moderate samples: jittered points, box + points, or violin + median.
+- Bars only when the aggregate is the message.
+- Show uncertainty: standard error, CI, IQR, or ensemble spread.
+- No 3D bars or gradient-filled bars.
 
 ### EOF / PCA diagnostics
 
 - Spatial modes: map panels with diverging colormap centered at zero.
 - PCs: normalized time series with zero line.
-- Explained variance: include percent in title or label.
-- Keep sign conventions explicit if modes are flipped.
+- Explained variance: percent in title or label.
+- Explicit sign convention if modes are flipped.
 
 ### Taylor diagrams and skill summaries
 
 - Correlation angular axis, std-ratio radial axis, reference at `(1, 1)`.
-- Keep markers readable; use direct labels or a compact legend.
-- Avoid too many model markers in one diagram. Split into groups if necessary.
-- Use muted categorical colors and marker shapes.
+- Readable markers; direct labels or compact legend.
+- Split into groups when many model markers.
+- Muted categorical colors and marker shapes.
 
 ### Volcano plots and generic scatter summaries
 
-Volcano plots are not core atmos/ocean diagnostics but may appear in interdisciplinary work.
+Not core atmos/ocean diagnostics but may appear in interdisciplinary work.
 
-- Use muted nonsignificant points and one or two accent colors for significant groups.
+- Muted nonsignificant points; one or two accent colors for significant groups.
 - Label only top-priority points.
-- Add threshold lines and explain them in the legend or caption.
-- Avoid saturated red/green-only up/down encoding.
+- Add threshold lines with legend/caption explanation.
+- No saturated red/green-only up/down encoding.
 
 ## Export
 

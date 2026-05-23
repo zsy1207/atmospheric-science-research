@@ -26,50 +26,48 @@ Read references on demand:
 
 ## Workflow
 
-1. **Probe** — Inspect with metadata-only commands, never Python preview scripts.
+1. **Probe** — Metadata-only inspection; never write Python preview scripts.
    - NetCDF: `ncdump -h file.nc`
    - GRIB: `cdo sinfon file.grib`
    - HDF5: `h5dump -H file.h5`
-   - Zarr / other: a metadata-only Python one-liner (`xr.open_zarr(...).info()`), not a preview script.
-   - *Fallback*: If `ncdump`, `cdo`, or `h5dump` report `command not found`, fallback to a metadata-only Python one-liner (e.g., using `xarray`, `netCDF4`, or `h5py` to read headers/info).
-2. **Plan** — Ask only scientific questions that can change the result. For each question, provide your recommended answer. Record every adopted scientific assumption in the plan and final README, including user choices and reversible defaults. Do not leave assumptions only in code.
-3. **Build** — Keep or create a runnable project layout. Prefer `figN/compute_*.py`, `figN/plot_*.py`, and `data_output/figN/...`; do not reorganize existing projects unless requested.
-4. **Compute** — Scripts must run without required CLI arguments, be idempotent, and write reusable outputs before plots consume them.
-5. **Plot** — Read `plot-standards.md`; apply the journal figure style and code-derived layout conventions there.
-6. **Review** — Render each PNG, open the image, run RR until `PASS` or `BLOCKED`.
-7. **Document** — After all figures `PASS`, write or update one Chinese `README.md`, including adopted assumptions and unresolved risks.
+   - Zarr / other: metadata-only Python one-liner (`xr.open_zarr(...).info()`).
+   - *Fallback*: if a CLI is missing, use a metadata-only Python one-liner (`xarray`, `netCDF4`, or `h5py` to read headers/info).
+2. **Plan** — Ask only scientific questions that change the result; provide your recommended answer with each. Record every adopted assumption (user choices and reversible defaults) in the plan and final README, never only in code.
+3. **Build** — Keep or create a runnable layout: `figN/compute_*.py`, `figN/plot_*.py`, `data_output/figN/...`. Do not reorganize existing projects unless asked.
+4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots consume them.
+5. **Plot** — Read `plot-standards.md`; apply its journal style and layout conventions.
+6. **Review** — Render PNG, open the image, run RR until `PASS` or `BLOCKED`.
+7. **Document** — After all figures `PASS`, write or update one Chinese `README.md` listing adopted assumptions and unresolved risks.
 
 ## Compute Rules
 
-- **Use fast tools** — Vectorize: `xr.where` / boolean masks instead of `for` over grid points. Reduce: `.mean(dim=..., skipna=True)` (and `.sum` / `.std` likewise) for dim-aware ops that preserve coords. Regrid: prefer `cdo remap*` (or `xesmf`) over hand-rolled interpolation.
-- **NetCDF (single file)** — Try `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` first. If it fails (e.g. due to NetCDF3 format or missing `h5netcdf`/`dask` package), fallback to `engine="netcdf4"` (or default engine) and adjust chunks. Raw fields stay lazy until NetCDF write.
-- **NetCDF (multi file)** — Try `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` first. Fallback to default engine or disable parallel if Dask is not installed or configured.
-- **Other formats** — For GRIB/HDF/Zarr/other xarray-readable inputs, preserve parallel dask-backed reads with `parallel=True` and `chunks="auto"` or the reader's closest equivalent.
-- Do not rechunk. Do not call `.load()` unless necessary.
-- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), extract the source field with **at least 2 grid points of padding on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and from interpolation/regrid artifacts at the boundary.
+- **Use fast tools** — Vectorize with `xr.where` / boolean masks, not Python loops over grid points. Reduce with `.mean(dim=..., skipna=True)` (and `.sum` / `.std`) to preserve coords. Climatology and statistics: `groupby("time.dayofyear").mean()`, `xr.corr`, `xr.cov`, `xr.polyfit`, and `xr.apply_ufunc(..., dask="parallelized")` for custom kernels. Regrid with `cdo remap*` (or `xesmf`), not hand-rolled interpolation.
+- **NetCDF** — `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` for one file; `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` for many. Fall back to the default engine if `h5netcdf` errors. Raw fields stay lazy until NetCDF write.
+- **Other formats** — For GRIB / HDF / Zarr / other xarray-readable inputs, preserve parallel dask-backed reads (`parallel=True`, `chunks="auto"`) or the reader's closest equivalent.
+- Do not rechunk. Do not call `.load()` or `.compute()` unless necessary.
+- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), pad the source field by **at least 2 grid points on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and interpolation/regrid artifacts at the boundary.
 
 ## Plot Rules
 
 Full standards in `references/plot-standards.md`. Required:
 
-- Apply a top-journal visual standard: every figure must be scientifically defensible, visually balanced, uncluttered, and readable at publication scale. Compact multi-panel layouts, bold panel letters, thin coastlines, dashed gridlines, narrow colorbars, restrained annotations, and red/blue signed significance markers.
-- `import cmaps` + explicit discrete `levels`. Sequential for absolute fields; diverging, symmetric, 0-centered for anomalies.
-- Comparable panels share cmap and levels unless units differ.
-- Colormap and levels must be visually reasonable and scientifically meaningful: avoid washed-out signals, saturation, false boundaries, or scales that exaggerate noise.
-- Use Arial for new figures; preserve an existing project font only when patching to avoid style drift. Write units exponentially, e.g. `W m−2`, `kg m−2 s−1`, `m s−1`.
-- On maps, show latitude/longitude, add coastlines, and omit national/provincial borders unless scientifically needed.
-- Vectors must have scientifically interpretable reference magnitudes and visually appropriate size/density: arrows should reveal circulation structure without clutter or empty-looking fields. Sensible density, visible circulation, and a top-right quiver key with a rounded reference magnitude.
-- Make significance visible but subordinate: subsampled dots/stippling; positive and negative signs should be distinguishable without obscuring the field.
-- Put only bold panel letters in the upper-left. Put necessary descriptions in the upper-right or row/column labels. Do not use figure-level `suptitle`, default centered axis titles, captions, or data stamps.
-- Export PNG @ 600 ppi (`dpi=600`); `plt.close(fig)`.
+- **Top-journal gate** — every figure must be scientifically defensible, visually balanced, uncluttered, and readable at publication scale: compact multi-panel layouts, bold panel letters, thin coastlines, dashed gridlines, narrow colorbars, restrained annotations, signed-significance markers in red/blue.
+- `import cmaps` with explicit discrete `levels`. Sequential for absolute fields; diverging, symmetric, 0-centered for anomalies. Comparable panels share cmap and levels via **one shared `BoundaryNorm`** unless units differ.
+- Levels must be scientifically meaningful: no washed-out signals, saturation, false boundaries, or scales that exaggerate noise. Pass `extend="both"` (or `"max"` / `"min"` for one-sided fields) so out-of-range values render as extension triangles, not silent clipping.
+- Arial for new figures; preserve an existing project font when patching to avoid style drift. Units in exponential form: `W m−2`, `kg m−2 s−1`, `m s−1` — never slash notation.
+- Maps: show latitude/longitude, add coastlines, omit national/provincial borders unless scientifically needed. Pass `transform=ccrs.PlateCarree()` (or the data CRS) to every Cartopy plot call.
+- Vectors: scientifically interpretable reference magnitude rounded near the median speed (not the maximum); skip density that reveals circulation without clutter or empty fields; top-right quiver key.
+- Significance: visible but subordinate; subsampled dots/stippling; positive and negative signs distinguishable without obscuring the field.
+- Bold panel letters in upper-left only; descriptions in upper-right or row/column labels. No `suptitle`, default centered axis titles, captions, or data stamps.
+- Export PNG at 600 ppi (`dpi=600`, `bbox_inches="tight"`); call `plt.close(fig)` after every figure.
 
 ## RR Rules
 
 Full procedure in `references/review.md`. Required:
 
 - Open the rendered PNG every iteration — code review alone is forbidden.
-- Per iteration: layout first (colorbar proportion, panel balance, overlap, clipping) → cross-check `plot-standards.md` + Reject Conditions → physics check (range, units, sign convention, pressure-axis orientation) → classify `PASS` / `REVISE` / `BLOCKED`.
-- Run at least one RR iteration per figure — never declare `PASS` without going through the loop. Max 10 iterations; if not `PASS` by then, output `BLOCKED`.
+- Per iteration: layout first (colorbar proportion, panel balance, overlap, clipping) → cross-check `plot-standards.md` + Reject Conditions → physics (range, units, sign convention, pressure-axis orientation) → classify `PASS` / `REVISE` / `BLOCKED`.
+- Run at least one RR iteration per figure; never declare `PASS` without it. Max 10 iterations; if not `PASS` by then, output `BLOCKED`.
 - Top-journal gate — revise if the figure would look out of place in a top atmospheric-science journal: cluttered, unbalanced, or inconsistently styled.
 
 ## Patch Mode

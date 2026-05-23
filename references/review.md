@@ -1,6 +1,6 @@
 # Review & Revision (RR)
 
-Bounded, figure-focused loop. Catches visual defects and obvious data-sanity problems; not a full science re-audit.
+Bounded, figure-focused loop. Catches visual defects and obvious data-sanity issues; not a full science re-audit.
 
 ## Loop
 
@@ -14,7 +14,7 @@ Bounded, figure-focused loop. Catches visual defects and obvious data-sanity pro
    - `REVISE` — fix the first material issue, re-render, reopen PNG.
    - `BLOCKED` — user decision, missing input/dependency, or unreadable output.
 
-Run at least one RR iteration per figure — never declare `PASS` without going through the loop. Max 10 iterations per figure.
+Run at least one RR iteration per figure; never declare `PASS` without it. Max 10 iterations per figure.
 
 ## Top-Journal Visual Gate
 
@@ -26,15 +26,15 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font is not Arial, default centered axis title, figure-level `suptitle()`, caption, source/data stamp, missing units/labels, units not written exponentially, clipped text, font < 7 pt |
-| Panels | Multi-panel without bold upper-left panel letters such as `a`, `b`, ...; descriptions placed as centered titles instead of upper-right text or row/column labels; inconsistent panel styling |
+| Text | Font not Arial; default centered axis title; figure-level `suptitle()`; caption; source/data stamp; missing units/labels; units not exponential; clipped text; font < 7 pt |
+| Panels | Multi-panel without bold upper-left panel letters (`a`, `b`, ...); descriptions placed as centered titles instead of upper-right text or row/column labels; inconsistent panel styling |
 | Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable panels use independent norms instead of one shared `BoundaryNorm` |
-| Geography | Wrong projection, missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`, missing coastlines, unnecessary national/provincial borders, missing latitude/longitude indication, dateline seam, missing relevant inset |
+| Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |
-| Vectors | Too dense / sparse, missing quiver key, bad key position or magnitude |
-| Significance | Invisible, dot size inappropriate, not subsampled when needed, or obscures signal |
-| Layout | Crowded panels, dominant colorbar, overlap, clipping, poor whitespace |
-| Physics | Implausible values, wrong sign convention, wrong pressure-axis orientation, missing or wrong units |
+| Vectors | Too dense / sparse; missing quiver key; bad key position or magnitude |
+| Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal |
+| Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace |
+| Physics | Implausible values; wrong sign convention; wrong pressure-axis orientation; missing or wrong units |
 
 ## Quick Fixes
 
