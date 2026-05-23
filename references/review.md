@@ -28,8 +28,8 @@ Revise immediately if any item is true.
 |---|---|
 | Text | Font is not Arial, default centered axis title, figure-level `suptitle()`, caption, source/data stamp, missing units/labels, units not written exponentially, clipped text, font < 7 pt |
 | Panels | Multi-panel without bold upper-left panel letters such as `a`, `b`, ...; descriptions placed as centered titles instead of upper-right text or row/column labels; inconsistent panel styling |
-| Colormap | Not `cmaps`; no explicit levels; anomaly not centered on 0; incomparable panel scales |
-| Geography | Wrong projection, missing coastlines, unnecessary national/provincial borders, missing latitude/longitude indication, dateline seam, missing relevant inset |
+| Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable panels use independent norms instead of one shared `BoundaryNorm` |
+| Geography | Wrong projection, missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`, missing coastlines, unnecessary national/provincial borders, missing latitude/longitude indication, dateline seam, missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |
 | Vectors | Too dense / sparse, missing quiver key, bad key position or magnitude |
 | Significance | Invisible, dot size inappropriate, not subsampled when needed, or obscures signal |
@@ -49,7 +49,9 @@ Starting points; tune against the rendered PNG.
 | Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable |
 | Gridline edge labels collide | `gl.top_labels = False; gl.right_labels = False` |
 | Dateline seam | Check `transform=ccrs.PlateCarree()`, cyclic point, central longitude |
+| Map warped, empty, or off-axis | Add `transform=ccrs.PlateCarree()` to every Cartopy plot call |
 | Anomaly not centered | Symmetric levels around 0 + diverging `cmaps` |
+| Out-of-range fill flat at min/max | `extend="both"` on `contourf` + colorbar (`"max"` / `"min"` if one-sided, e.g. precip) |
 | Fill washed out / saturated | Inspect summary range; reset common interpretable levels |
 | Stippling invisible | Increase marker size / alpha or use sparse hatching `"..."` |
 | Stippling too dense | Increase subsampling or reduce marker size / alpha |
