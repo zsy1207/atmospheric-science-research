@@ -1,6 +1,6 @@
 ---
 name: atmospheric-science-research
-description: Atmospheric and climate science workflows that need a runnable project structure. Probe NetCDF/GRIB/HDF/Zarr, compute diagnostics, render publication-grade figures with visual review-revision loops, and write a Chinese project README. Skip conceptual weather questions with no local files.
+description: Use for climatology data processing, diagnostic computation, and publication-grade plotting.
 ---
 
 # Atmospheric Science Research
@@ -59,6 +59,7 @@ Full standards in `references/plot-standards.md`. Required:
 - Vectors: scientifically interpretable reference magnitude rounded near the median speed (not the maximum); skip density that reveals circulation without clutter or empty fields; top-right quiver key.
 - Significance: visible but subordinate; subsampled dots/stippling; positive and negative signs distinguishable without obscuring the field.
 - Bold panel letters in upper-left only; descriptions in upper-right or row/column labels. No `suptitle`, default centered axis titles, captions, or data stamps.
+- Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
 - Export PNG at 600 ppi (`dpi=600`, `bbox_inches="tight"`); call `plt.close(fig)` after every figure.
 
 ## RR Rules

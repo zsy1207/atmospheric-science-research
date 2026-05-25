@@ -2,6 +2,20 @@
 
 Read before writing or changing plot code. The rendered PNG, not code parameters, is ground truth.
 
+## Contents
+
+- [Colormaps and Levels](#colormaps-and-levels)
+- [Projections](#projections)
+- [Layout](#layout)
+- [Maps](#maps)
+- [Tibetan Plateau Masking](#tibetan-plateau-masking)
+- [Vectors and Contours](#vectors-and-contours)
+- [Significance](#significance)
+- [Gridlines and tick labels](#gridlines-and-tick-labels)
+- [Contour overlays](#contour-overlays)
+- [Other Figure Types](#other-figure-types)
+- [Export](#export)
+
 ## Colormaps and Levels
 
 `import cmaps` and explicit discrete `levels` for filled fields. Never `jet`, `rainbow`, `viridis`, `MPL_jet`, `MPL_rainbow`, `NCV_jet`.
@@ -87,18 +101,7 @@ plt.rcParams["font.family"] = "Arial"
 
 Write units exponentially: `W m−2`, `kg m−2 s−1`, `m s−1`. Never slash notation (`W/m^2`).
 
-Starting figure sizes — AGU/Wiley standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
-
-| Layout | `figsize` (in) | Column |
-|---|---|---|
-| Single map, compact | `(3.74, 2.6)`–`(3.74, 3.5)` | 1 |
-| Single map, full width | `(7.48, 4.5)`–`(7.48, 6.0)` | 2 |
-| 2-panel side-by-side | `(7.48, 3.0)`–`(7.48, 3.8)` | 2 |
-| 2-panel stacked | `(3.74, 4.8)`–`(3.74, 5.6)` | 1 |
-| 4-panel (2×2) | `(7.48, 5.0)`–`(7.48, 6.5)` | 2 |
-| 6-panel (3×2) | `(7.48, 6.5)`–`(7.48, 8.0)` | 2 |
-| Hard ceiling | `(7.48, 9.06)` | — |
-
+Starting figure sizes — standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
 - Minimum readable font 7 pt; prefer 8–11 pt for ticks, labels, legends, colorbars.
@@ -221,6 +224,9 @@ ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
 
 ## Other Figure Types
 
+### Color
+- Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
+
 ### Time series
 
 - Thin lines with restrained markers; zero/reference lines for anomaly indices (red/orange for heatwave or positive index, light blue bars for precipitation or paired index).
@@ -293,5 +299,3 @@ Not core atmos/ocean diagnostics but may appear in interdisciplinary work.
 fig.savefig("path.png", dpi=600, bbox_inches="tight", pad_inches=0.05)
 plt.close(fig)
 ```
-
-`bbox_inches="tight"` may shrink the final canvas by up to ±5% from the `figsize` in the AGU width table; treat the listed sizes as targets, not exact constraints.

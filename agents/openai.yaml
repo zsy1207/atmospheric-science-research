@@ -1,9 +1,4 @@
 interface:
   display_name: "Atmospheric Science Research"
-  short_description: >-
-    Atmospheric and climate science workflows that need a runnable project
-    structure. Probe NetCDF/GRIB/HDF/Zarr, compute diagnostics, render
-    publication-grade figures with visual review-revision loops, and write
-    a Chinese project README. Skip conceptual weather questions with no
-    local files.
+  short_description: "Verified atmospheric data workflows."
   default_prompt: "Use $atmospheric-science-research to analyze local climate data and produce verified figures."
