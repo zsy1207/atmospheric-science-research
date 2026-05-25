@@ -101,7 +101,8 @@ plt.rcParams["font.family"] = "Arial"
 
 Write units exponentially: `W m−2`, `kg m−2 s−1`, `m s−1`. Never slash notation (`W/m^2`).
 
-Starting figure sizes — standard widths (1-column 95 mm = 3.74 in, 1.5-column 140 mm = 5.51 in, 2-column 190 mm = 7.48 in; max figure 190 × 230 mm = 7.48 × 9.06 in):
+Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column figures, 105–170 mm for double-column figures, and keep height under 228 mm.
+
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
 - Minimum readable font 7 pt; prefer 8–11 pt for ticks, labels, legends, colorbars.
