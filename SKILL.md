@@ -34,7 +34,7 @@ Read references on demand:
    - *Fallback*: if a CLI is missing, use a metadata-only Python one-liner (`xarray`, `netCDF4`, or `h5py` to read headers/info).
 2. **Plan** — Ask only scientific questions that change the result; provide your recommended answer with each. Record every adopted assumption (user choices and reversible defaults) in the plan and final README, never only in code.
 3. **Build** — Keep or create a runnable layout: `figN/compute_*.py`, `figN/plot_*.py`, `data_output/figN/...`. Do not reorganize existing projects unless asked.
-4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots consume them.
+4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots consume them. For long computations, once the output schema is clear, start drafting the plot script while the compute job runs; revise it after outputs exist.
 5. **Plot** — Read `plot-standards.md`; apply its journal style and layout conventions.
 6. **Review** — Render PNG, open the image, run RR until `PASS` or `BLOCKED`.
 7. **Document** — After all figures `PASS`, write or update one Chinese `README.md` listing adopted assumptions and unresolved risks.
@@ -44,7 +44,8 @@ Read references on demand:
 - **Use fast tools** — Vectorize with `xr.where` / boolean masks, not Python loops over grid points. Reduce with `.mean(dim=..., skipna=True)` (and `.sum` / `.std`) to preserve coords. Climatology and statistics: `groupby("time.dayofyear").mean()`, `xr.corr`, `xr.cov`, `xr.polyfit`, and `xr.apply_ufunc(..., dask="parallelized")` for custom kernels. Regrid with `cdo remap*` (or `xesmf`), not hand-rolled interpolation.
 - **NetCDF** — `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` for one file; `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` for many. Fall back to the default engine if `h5netcdf` errors. Raw fields stay lazy until NetCDF write.
 - **Other formats** — For GRIB / HDF / Zarr / other xarray-readable inputs, preserve parallel dask-backed reads (`parallel=True`, `chunks="auto"`) or the reader's closest equivalent.
-- Do not rechunk. Do not call `.load()` or `.compute()` unless necessary.
+- **Dask boundary** — Keep raw daily or sub-daily fields lazy. First reduce/compress them to annual means (or the coarsest scientifically valid temporal stack), then eager-load only that annual-mean stack before algorithmic loops. Build climatologies from the in-memory annual fields; never let a lazy climatology enter a loop.
+- **Compute placement** — Do not rechunk. Avoid fine-grained `.compute()` / `.load()` calls inside loops, especially per-year `.compute()`. Trigger dask once at the algorithm boundary where eager-loading prevents repeated I/O, then loop only over in-memory xarray/numpy slices. Do not eager-load raw daily inputs, and do not postpone computation so long that the same lazy graph rereads source data repeatedly.
 - **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), pad the source field by **at least 2 grid points on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and interpolation/regrid artifacts at the boundary.
 
 ## Plot Rules
