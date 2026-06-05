@@ -105,8 +105,8 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
-- Minimum readable font 7 pt; prefer 8–11 pt for ticks, labels, legends, colorbars.
-- For 3+ map panels, prefer vertical stacking or 2×2 / 3×2 over a cramped 1×N row.
+- Minimum readable font 8 pt; prefer 8–12 pt for ticks, labels, legends, colorbars.
+- For Cartopy maps, recheck layout after adding colorbars — GeoAxes often produce unexpected spacing.
 
 ### Panel labels and descriptions
 
@@ -114,13 +114,6 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 - Panel letters at the upper-left of each panel (or slightly outside the axes); descriptions go upper-right or as row/column labels.
 - Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
 - No figure-level `suptitle`, default centered axis titles, captions, or data stamps.
-
-### Spacing
-
-- Whitespace minimal but not cramped.
-- `constrained_layout=True` or `GridSpec` with explicit ratios.
-- For Cartopy maps, recheck layout after adding colorbars — GeoAxes often produce unexpected spacing.
-- Colorbars never determine the whole figure geometry.
 
 ### Shared elements
 
