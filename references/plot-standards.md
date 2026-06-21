@@ -111,9 +111,10 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 ### Panel labels and descriptions
 
 - Lower-case bold upright labels: `a`, `b`, `c`, ...; no punctuation after the letter.
-- Put panel letters at the upper-left of each panel, aligned across rows/columns; keep them separate from descriptions.
-- Put compact descriptions above the axes frame line as panel captions; they do not need to follow the panel letter.
-- Align every caption baseline to the same y-position within each row; align caption starts across columns where possible.
+- Put panel letters slightly outside the upper-left corner of each panel, aligned across rows/columns; keep them separate from descriptions and use `clip_on=False`.
+- Put compact descriptions at each panel's upper-left, anchored to the axes frame rather than centered; they do not need to follow the panel letter.
+- Default sizes: panel letters 12 pt; compact descriptions 10 pt.
+- Align every description baseline to the same y-position within each row; align description starts across columns where possible.
 - Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
 - No figure-level `suptitle`, figure-level captions, default centered axis titles, or data stamps.
 
@@ -178,7 +179,7 @@ Goal: arrows distinguishable, field structure visible.
 - Muted grey arrows (`#555555`), width `0.0025–0.004`; avoid black arrow fields unless sparse.
 - Skip factor by resolution: 2.5° → 1–2; 1° → 3–5; 0.25° → 8–15. Larger domains need more skipping.
 - Reference magnitude: rounded value near the median speed, not the maximum.
-- Quiver key outside/top-right, aligned to the panel-caption baseline.
+- Quiver key outside/top-right, aligned to the description baseline.
 - For dense or warped fields, try Cartopy `regrid_shape=20` as a first guess.
 - Overlay contours only when they add physical interpretation; thin dark grey/black lines, labels that do not dominate.
 
