@@ -26,8 +26,8 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font not Arial; default centered axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not exponential; clipped text; font < 7 pt |
-| Panels | Multi-panel without bold panel letters (`a`, `b`, ...) slightly outside the upper-left; descriptions not placed at each panel's upper-left; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
+| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not exponential; clipped text; font < 7 pt |
+| Panels | Multi-panel without bold panel letters (`a`, `b`, ...) slightly outside the upper-left; descriptions not centered over each panel; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
 | Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable panels use independent norms instead of one shared `BoundaryNorm` |
 | Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |

@@ -112,11 +112,11 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 
 - Lower-case bold upright labels: `a`, `b`, `c`, ...; no punctuation after the letter.
 - Put panel letters slightly outside the upper-left corner of each panel, aligned across rows/columns; keep them separate from descriptions and use `clip_on=False`.
-- Put compact descriptions at each panel's upper-left, anchored to the axes frame rather than centered; they do not need to follow the panel letter.
+- Put compact descriptions centered over each panel, anchored to the axes frame; they do not need to follow the panel letter.
 - Default sizes: panel letters 12 pt; compact descriptions 10 pt.
-- Align every description baseline to the same y-position within each row; align description starts across columns where possible.
+- Align every description baseline to the same y-position within each row.
 - Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
-- No figure-level `suptitle`, figure-level captions, default centered axis titles, or data stamps.
+- No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
 
 ### Shared elements
 

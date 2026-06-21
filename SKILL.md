@@ -59,7 +59,7 @@ Full standards in `references/plot-standards.md`. Required:
 - Maps: show latitude/longitude, add coastlines, omit national/provincial borders unless scientifically needed. Pass `transform=ccrs.PlateCarree()` (or the data CRS) to every Cartopy plot call.
 - Vectors: scientifically interpretable reference magnitude rounded near the median speed (not the maximum); skip density that reveals circulation without clutter or empty fields; top-right quiver key.
 - Significance: visible but subordinate; subsampled dots/stippling; positive and negative signs distinguishable without obscuring the field.
-- Bold 12 pt panel letters slightly outside each panel's upper-left; put 10 pt compact descriptions at the panel upper-left, independent of the letter. Place top-right quiver keys on the description baseline. No figure-level `suptitle`, figure-level captions, default centered axis titles, or data stamps.
+- Bold 12 pt panel letters slightly outside each panel's upper-left; put 10 pt compact descriptions centered over each panel, independent of the letter. Place top-right quiver keys on the description baseline. No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
 - Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
 - Export PNG at 600 ppi (`dpi=600`, `bbox_inches="tight"`); call `plt.close(fig)` after every figure.
 
