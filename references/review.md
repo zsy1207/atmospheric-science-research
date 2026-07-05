@@ -11,7 +11,7 @@ Bounded, figure-focused loop. Catches visual defects and obvious data-sanity iss
 5. Check **physics**: value range, units, sign convention, pressure-axis orientation, spatial pattern.
 6. Classify:
    - `PASS` — no visual or obvious data-sanity issue remains.
-   - `REVISE` — fix the first material issue, re-render, reopen PNG.
+   - `REVISE` — list all visible issues from the current PNG, batch all safe fixes that do not require new information, re-render once, reopen PNG.
    - `BLOCKED` — user decision, missing input/dependency, or unreadable output.
 
 Run at least one RR iteration per figure; never declare `PASS` without it. Max 10 iterations per figure.
@@ -26,13 +26,13 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not exponential; clipped text; font < 7 pt |
+| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 8 pt |
 | Panels | Multi-panel without bold panel letters (`a`, `b`, ...) slightly outside the upper-left; descriptions not centered over each panel; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
-| Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable panels use independent norms instead of one shared `BoundaryNorm` |
+| Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable `contourf` panels do not share `levels` + `cmap` + `extend`; comparable `pcolormesh` / image-style panels use independent bin norms |
 | Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |
 | Vectors | Too dense / sparse; missing quiver key; bad key position or magnitude |
-| Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal |
+| Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal; ordinary masks use saturated colors; signed masks are not distinguishable when sign matters |
 | Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace |
 | Physics | Implausible values; wrong sign convention; wrong pressure-axis orientation; missing or wrong units |
 

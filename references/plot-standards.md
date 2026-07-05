@@ -18,7 +18,7 @@ Read before writing or changing plot code. The rendered PNG, not code parameters
 
 ## Colormaps and Levels
 
-`import cmaps` and explicit discrete `levels` for filled fields. Never `jet`, `rainbow`, `viridis`, `MPL_jet`, `MPL_rainbow`, `NCV_jet`.
+`import cmaps` and explicit discrete `levels` for filled fields. Default to domain-specific `cmaps`; use `viridis` only when a perceptually uniform generic sequential map is the best justified fit. Never `jet`, `rainbow`, `MPL_jet`, `MPL_rainbow`, `NCV_jet`.
 
 | Context | Recommended `cmaps` | Rule |
 |---|---|---|
@@ -42,9 +42,9 @@ Read before writing or changing plot code. The rendered PNG, not code parameters
 MUST:
 
 - Center at zero; include zero in ticks; use matched positive/negative limits unless justified.
-- Use `TwoSlopeNorm(vcenter=0)` or an explicit symmetric `BoundaryNorm`.
+- Use explicit symmetric `levels` with a diverging `cmap`. For `contourf`, shared `levels` + `cmap` + `extend` define the scale; no separate norm is needed. Use `BoundaryNorm` only for `pcolormesh` / image-style mappables that need discrete bins.
 - Pass `extend="both"` to `contourf` / `colorbar` so out-of-range values render as extension triangles, not silently clipped fill.
-- For comparable panels, build **one shared `BoundaryNorm`** once and reuse it across every panel — never let panels recompute their own norm.
+- For comparable panels, reuse the same `levels`, `cmap`, and `extend` across every panel — never let panels recompute their own scale.
 
 ### Sequential scale
 
@@ -53,14 +53,14 @@ MUST:
 - Use monotonic lightness; avoid categorical colors for continuous variables.
 - Use physically meaningful endpoints and ticks.
 - Pass `extend="both"` (or `"max"` / `"min"` when one tail is physically closed, e.g. precipitation ≥ 0) whenever values can exceed `levels`.
-- For comparable panels, share a single `BoundaryNorm` and `levels` array across all panels.
+- For comparable `contourf` panels, share the same `levels`, `cmap`, and `extend`. For `pcolormesh` / image-style panels, also share one `BoundaryNorm` when discrete bins are required.
 
 Set scientifically interpretable levels from domain knowledge. Never auto-scale per panel. If the signal is hidden or saturated, inspect summary ranges, then set common readable levels.
 
 ### Colorbar design
 
 - Horizontal colorbars below maps and compact multi-panel groups; vertical for standalone maps or right-side shared legends.
-- Short unit labels: `SST anomaly (°C)`, `Wind speed (m s−1)`, `Precipitation (mm day−1)`.
+- Short unit labels: `SST anomaly (°C)`, `r"Wind speed (m s$^{-1}$)"`, `r"Precipitation (mm day$^{-1}$)"`.
 - Never longer than the panel group it describes.
 - Same ticks and limits across comparable panels.
 
@@ -93,13 +93,20 @@ Set scientifically interpretable levels from domain knowledge. Never auto-scale 
 
 ## Layout
 
-Use Arial for all figure text:
+Use Arial for all figure text and keep mathtext units upright:
 
 ```python
-plt.rcParams["font.family"] = "Arial"
+plt.rcParams.update({
+    "font.family": "Arial",
+    "mathtext.default": "regular",
+    "mathtext.fontset": "custom",
+    "mathtext.rm": "Arial",
+    "mathtext.it": "Arial:italic",
+    "mathtext.bf": "Arial:bold",
+})
 ```
 
-Write units exponentially: `W m−2`, `kg m−2 s−1`, `m s−1`. Never slash notation (`W/m^2`).
+Write units with mathtext superscripts: `r"W m$^{-2}$"`, `r"kg m$^{-2}$ s$^{-1}$"`, `r"m s$^{-1}$"`. Never slash notation (`W/m^2`).
 
 Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column figures, 105–170 mm for double-column figures, and keep height under 228 mm.
 
@@ -187,7 +194,7 @@ Goal: arrows distinguishable, field structure visible.
 Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), color="#555555",
               scale=200, width=0.003, zorder=3)
-ax.quiverkey(Q, 0.90, 1.046, 10, "10 m s−1", labelpos="E",
+ax.quiverkey(Q, 1.0, 1.04, 10, r"10 m s$^{-1}$", labelpos="W",
              coordinates="axes", fontproperties={"size": 9}, labelsep=0.05)
 ```
 
@@ -197,7 +204,8 @@ Make significance visible without obscuring the field.
 
 - Hatching: sparse `"..."`; avoid dense `"/////"` or `"xxxxx"`.
 - Scatter: tune marker size against the rendered PNG; start `0.3–1.0` with alpha `0.4–0.6`.
-- Dark grey/black with alpha `0.35–0.7`; avoid saturated stippling colors.
+- Ordinary significance masks: dark grey/black with alpha `0.35–0.7`; avoid saturated stippling colors.
+- Signed significant responses: use low-saturation blue/red with matched alpha and small markers only when the sign must be visually distinguished.
 - Subsample every 2–4 grid points; high-resolution grids need stronger subsampling to avoid black patches while preserving significant-region structure.
 
 ```python
