@@ -63,6 +63,7 @@ Set scientifically interpretable levels from domain knowledge. Never auto-scale 
 - Short unit labels: `SST anomaly (°C)`, `r"Wind speed (m s$^{-1}$)"`, `r"Precipitation (mm day$^{-1}$)"`.
 - Never longer than the panel group it describes.
 - Same ticks and limits across comparable panels.
+- Maintain a restrained, concise figure style.
 
 ### Forbidden
 
@@ -118,11 +119,9 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 ### Panel labels and descriptions
 
 - Lower-case bold upright labels: `a`, `b`, `c`, ...; no punctuation after the letter.
-- Put panel letters slightly outside the upper-left corner of each panel, aligned across rows/columns; keep them separate from descriptions and use `clip_on=False`.
 - Put compact descriptions centered over each panel, anchored to the axes frame; they do not need to follow the panel letter.
 - Default sizes: panel letters 12 pt; compact descriptions 10 pt.
 - Align every description baseline to the same y-position within each row.
-- Maintain a restrained, concise figure style.
 - Do not add nonessential explanatory text and mark inside the figure; move interpretation, caveats, methods, and data notes to the caption, README, or manuscript text.
 - Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
 - No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
