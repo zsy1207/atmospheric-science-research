@@ -123,7 +123,7 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 - Default sizes: panel letters 12 pt; compact descriptions 10 pt.
 - Align every description baseline to the same y-position within each row.
 - Maintain a restrained, concise figure style.
-- Do not add nonessential explanatory text inside the figure; move interpretation, caveats, methods, and data notes to the caption, README, or manuscript text.
+- Do not add nonessential explanatory text and mark inside the figure; move interpretation, caveats, methods, and data notes to the caption, README, or manuscript text.
 - Compact descriptors only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
 - No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
 
