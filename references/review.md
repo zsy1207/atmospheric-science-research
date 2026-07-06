@@ -26,14 +26,14 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 8 pt |
+| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 8 pt; nonessential explanatory text inside the figure |
 | Panels | Multi-panel without bold panel letters (`a`, `b`, ...) slightly outside the upper-left; descriptions not centered over each panel; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
 | Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable `contourf` panels do not share `levels` + `cmap` + `extend`; comparable `pcolormesh` / image-style panels use independent bin norms |
 | Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
 | Tibet | ≤ 850 hPa field over Tibet not masked |
 | Vectors | Too dense / sparse; missing quiver key; bad key position or magnitude |
 | Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal; ordinary masks use saturated colors; signed masks are not distinguishable when sign matters |
-| Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace |
+| Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace; figure style is not restrained and concise |
 | Physics | Implausible values; wrong sign convention; wrong pressure-axis orientation; missing or wrong units |
 
 ## Quick Fixes
