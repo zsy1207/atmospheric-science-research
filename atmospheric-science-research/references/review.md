@@ -43,7 +43,6 @@ Starting points; tune against the rendered PNG.
 | Defect | First fix |
 |---|---|
 | Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, `aspect=25–40`, or dedicated `GridSpec` slot |
-| Panel label clips | Place the letter slightly outside the upper-left with `ax.text(..., transform=ax.transAxes, clip_on=False)`; increase top/left margin |
 | Quiver key overlaps description | Move to top-right on the description baseline: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
 | Quiver too dense / sparse | Adjust skip: 2.5° → 1–2, 1° → 3–5, 0.25° → 8–15 |
 | Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable |
