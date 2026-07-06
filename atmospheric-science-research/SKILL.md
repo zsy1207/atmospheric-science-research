@@ -61,7 +61,7 @@ Full standards in `references/plot-standards.md`. Required:
 - Significance: visible but subordinate; subsampled dots/stippling. Use grey/black for ordinary significance masks; use low-saturation red/blue only when the sign of the significant response must be distinguished.
 - Style: maintain a restrained, concise figure style.
 - Text: do not add nonessential explanatory text and mark inside the figure.
-- Bold 12 pt panel letters at each panel's upper-left; put 10 pt minimal tag descriptions centered over each panel, independent of the letter. Place top-right quiver keys on the description baseline. No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
+- Bold 20 pt panel letters at each panel's upper-left; put 18 pt minimal tag descriptions centered over each panel, independent of the letter. Treat these as default starting sizes and adjust to the rendered figure's actual layout, density, and publication scale. Place top-right quiver keys on the description baseline. No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
 - Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
 - Export PNG at 600 ppi (`dpi=600`, `bbox_inches="tight"`); call `plt.close(fig)` after every figure.
 

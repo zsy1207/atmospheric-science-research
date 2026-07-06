@@ -26,7 +26,7 @@ Revise immediately if any item is true.
 
 | Area | Reject if |
 |---|---|
-| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 8 pt; nonessential explanatory text inside the figure |
+| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 10 pt; nonessential explanatory text inside the figure |
 | Panels | Multi-panel without bold panel letters (`a`, `b`, ...) at each panel's upper-left; descriptions not centered over each panel or not minimal; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
 | Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable `contourf` panels do not share `levels` + `cmap` + `extend`; comparable `pcolormesh` / image-style panels use independent bin norms |
 | Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
@@ -45,7 +45,7 @@ Starting points; tune against the rendered PNG.
 | Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, `aspect=25–40`, or dedicated `GridSpec` slot |
 | Quiver key overlaps description | Move to top-right on the description baseline: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
 | Quiver too dense / sparse | Adjust skip: 2.5° → 1–2, 1° → 3–5, 0.25° → 8–15 |
-| Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable |
+| Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable and never below 10 pt |
 | Gridline edge labels collide | `gl.top_labels = False; gl.right_labels = False` |
 | Dateline seam | Check `transform=ccrs.PlateCarree()`, cyclic point, central longitude |
 | Map warped, empty, or off-axis | Add `transform=ccrs.PlateCarree()` to every Cartopy plot call |

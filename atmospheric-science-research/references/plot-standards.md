@@ -113,14 +113,14 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 
 - `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
 - Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
-- Minimum readable font 8 pt; prefer 8–12 pt for ticks, labels, legends, colorbars.
+- Minimum readable font 10 pt; prefer 12–16 pt for ticks, labels, legends, colorbars. Treat preferred sizes as default starting settings and adjust to the rendered figure's actual layout, density, and publication scale without dropping below readability.
 - For Cartopy maps, recheck layout after adding colorbars — GeoAxes often produce unexpected spacing.
 
 ### Panel labels and descriptions
 
 - Lower-case bold upright labels: `a`, `b`, `c`, ...; no punctuation after the letter.
 - Put minimal tag descriptions centered over each panel, anchored to the axes frame; they do not need to follow the panel letter.
-- Default sizes: panel letters 12 pt; minimal descriptions 10 pt.
+- Default sizes: panel letters 20 pt; minimal descriptions 18 pt; adjust to the rendered figure's actual layout, density, and publication scale.
 - Align every description baseline to the same y-position within each row.
 - Keep descriptions to short noun phrases, preferably 6 words or fewer; no full sentences, methods, results, interpretation, or caveats.
 - Do not add nonessential explanatory text and mark inside the figure; move interpretation, caveats, methods, and data notes to the caption, README, or manuscript text.
@@ -138,7 +138,7 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 
 - Coastlines by default. No national/provincial borders unless scientifically/geographically necessary.
 - Indicate latitude/longitude on every map via ticks or gridline labels.
-- Gridlines: `draw_labels=True`; disable top/right labels; tick font 8–10 pt.
+- Gridlines: `draw_labels=True`; disable top/right labels; tick font 12–14 pt by default, never below 10 pt.
 - Dashed red/blue boxes for study regions; linewidth `1.2–2.0`, high zorder.
 
 ## Tibetan Plateau Masking
@@ -197,7 +197,7 @@ Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
               transform=ccrs.PlateCarree(), color="#555555",
               scale=200, width=0.003, zorder=3)
 ax.quiverkey(Q, 1.0, 1.04, 10, r"10 m s$^{-1}$", labelpos="W",
-             coordinates="axes", fontproperties={"size": 9}, labelsep=0.05)
+             coordinates="axes", fontproperties={"size": 12}, labelsep=0.05)
 ```
 
 ## Significance
