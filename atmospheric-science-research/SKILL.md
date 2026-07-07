@@ -46,7 +46,7 @@ Read references on demand:
 - **Other formats** — For GRIB / HDF / Zarr / other xarray-readable inputs, preserve parallel dask-backed reads (`parallel=True`, `chunks="auto"`) or the reader's closest equivalent.
 - **Dask boundary** — Keep raw daily or sub-daily fields lazy. Reduce to the coarsest scientifically valid temporal stack before eager loops: annual fields for annual diagnostics, daily/sub-daily climatologies for extreme-event diagnostics. Build climatologies at the temporal resolution required by the science, then eager-load only the derived fields needed for repeated algorithmic access.
 - **Compute placement** — Preserve source chunking by default, but rechunk deliberately when an operation requires a single core dimension or coarser algorithm chunks, e.g. `.chunk({"time": -1})` for percentile thresholds, detrending, or `xr.apply_ufunc(..., dask="parallelized")` kernels over `time`. Avoid fine-grained `.compute()` / `.load()` calls inside loops, especially per-year `.compute()`. Trigger dask once at the algorithm boundary where eager-loading prevents repeated I/O, then loop only over in-memory xarray/numpy slices. Do not eager-load raw daily inputs, and do not postpone computation so long that the same lazy graph rereads source data repeatedly.
-- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), pad the source field by **at least 2 grid points on each side** beyond the target bounds before computing/writing. The plot then sets `set_extent` to the target bounds. Prevents white margins from `contourf` / `pcolormesh` cell-edge handling and interpolation/regrid artifacts at the boundary.
+- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), pad the source field by **at least 1 grid point** beyond the target bounds to avoid white border artifacts.
 
 ## Plot Rules
 
@@ -57,7 +57,7 @@ Full standards in `references/plot-standards.md`. Required:
 - Levels must be scientifically meaningful: no washed-out signals, saturation, false boundaries, or scales that exaggerate noise. Pass `extend="both"` (or `"max"` / `"min"` for one-sided fields) so out-of-range values render as extension triangles, not silent clipping.
 - Arial for new figures; preserve an existing project font when patching to avoid style drift. Configure mathtext once and write units with superscripts, e.g. `r"W m$^{-2}$"`, `r"kg m$^{-2}$ s$^{-1}$"`, `r"m s$^{-1}$"` — never slash notation.
 - Maps: show latitude/longitude, add coastlines, omit national/provincial borders unless scientifically needed. Pass `transform=ccrs.PlateCarree()` (or the data CRS) to every Cartopy plot call.
-- Vectors: scientifically interpretable reference magnitude rounded near the median speed (not the maximum); skip density that reveals circulation without clutter or empty fields; top-right quiver key.
+- Vectors: use one clear quiver key with a reasonable reference magnitude and visible arrow size; avoid too-small or dominant key arrows; align the key arrow's right edge with the map's right boundary.
 - Significance: visible but subordinate; subsampled dots/stippling. Use grey/black for ordinary significance masks; use low-saturation red/blue only when the sign of the significant response must be distinguished.
 - Style: maintain a restrained, concise figure style.
 - Text: do not add nonessential explanatory text and mark inside the figure.
@@ -78,4 +78,4 @@ Full procedure in `references/review.md`. Required:
 
 For figure-only fixes: read existing code, make the smallest safe change, re-render only affected figures, then RR. Do not rewrite compute code or reorganize directories.
 
-If RR or inspection reveals a compute bug (wrong variable, unit error, bad climatology baseline, missing area weighting, etc.), stop patching and escalate to the Full Workflow from step 2 (Plan).
+If RR or inspection reveals a compute bug (wrong variable, unit error, bad climatology baseline, etc.), stop patching and escalate to the Full Workflow from step 2 (Plan).

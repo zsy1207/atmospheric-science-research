@@ -29,9 +29,9 @@ Revise immediately if any item is true.
 | Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 10 pt; nonessential explanatory text inside the figure |
 | Panels | Multi-panel without bold panel letters (`a`, `b`, ...) at each panel's upper-left; descriptions not centered over each panel or not minimal; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
 | Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable `contourf` panels do not share `levels` + `cmap` + `extend`; comparable `pcolormesh` / image-style panels use independent bin norms |
-| Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset |
+| Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset; regional map fails to avoid white border |
 | Tibet | ≤ 850 hPa field over Tibet not masked |
-| Vectors | Too dense / sparse; missing quiver key; bad key position or magnitude |
+| Vectors | Too dense / sparse; missing or unclear quiver key; bad key magnitude, size, or position; key arrow's right edge not aligned with the map's right boundary |
 | Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal; ordinary masks use saturated colors; signed masks are not distinguishable when sign matters |
 | Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace; figure style is not restrained and concise |
 | Physics | Implausible values; wrong sign convention; wrong pressure-axis orientation; missing or wrong units |
@@ -43,7 +43,8 @@ Starting points; tune against the rendered PNG.
 | Defect | First fix |
 |---|---|
 | Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, `aspect=25–40`, or dedicated `GridSpec` slot |
-| Quiver key overlaps description | Move to top-right on the description baseline: `quiverkey(Q, 1.0, 1.04, ..., labelpos="W")` |
+| Regional map shows white border | Adjust the subset or padding so the rendered map has no blank edge |
+| Quiver key too small, large, or misaligned | Tune magnitude, `scale`, `width`, and `X`; keep `labelpos="W"` and align the key arrow's right edge with the map boundary |
 | Quiver too dense / sparse | Adjust skip: 2.5° → 1–2, 1° → 3–5, 0.25° → 8–15 |
 | Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable and never below 10 pt |
 | Gridline edge labels collide | `gl.top_labels = False; gl.right_labels = False` |

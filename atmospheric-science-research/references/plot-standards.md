@@ -85,9 +85,9 @@ Set scientifically interpretable levels from domain knowledge. Never auto-scale 
 
 - For global fields, add a cyclic point or roll coordinates to avoid a dateline seam.
   ```python
-  from cartopy.util import add_cyclic_point
+  from cartopy.util import add_cyclic
   # da: xarray.DataArray with dims (lat, lon)
-  cyclic_data, cyclic_lon = add_cyclic_point(da.values, coord=da["lon"].values, axis=-1)
+  cyclic_data, cyclic_lon = add_cyclic(da.values, coord=da["lon"].values, axis=-1)
   ax.contourf(cyclic_lon, da["lat"].values, cyclic_data, transform=ccrs.PlateCarree())
   ```
 - **Pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
@@ -140,6 +140,7 @@ Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column fi
 - Indicate latitude/longitude on every map via ticks or gridline labels.
 - Gridlines: `draw_labels=True`; disable top/right labels; tick font 12–14 pt by default, never below 10 pt.
 - Dashed red/blue boxes for study regions; linewidth `1.2–2.0`, high zorder.
+- Regional maps must avoid white border around the plotted field; adjust the subset or padding if blank edges appear in the rendered PNG.
 
 ## Tibetan Plateau Masking
 
@@ -187,8 +188,9 @@ Goal: arrows distinguishable, field structure visible.
 
 - Muted grey arrows (`#555555`), width `0.0025–0.004`; avoid black arrow fields unless sparse.
 - Skip factor by resolution: 2.5° → 1–2; 1° → 3–5; 0.25° → 8–15. Larger domains need more skipping.
-- Reference magnitude: rounded value near the median speed, not the maximum.
-- Quiver key outside/top-right, aligned to the description baseline.
+- Reference magnitude: choose one scientifically interpretable value near the median speed, not the maximum.
+- Tune `scale`, `width`, and skip so vectors and the single quiver key are clear; the key arrow must be neither tiny nor dominant.
+- Quiver key outside/top-right, aligned to the description baseline. Keep `labelpos="W"` and tune `X` so the key arrow's right edge aligns with the map's right boundary without clipping.
 - For dense or warped fields, try Cartopy `regrid_shape=20` as a first guess.
 - Overlay contours only when they add physical interpretation; thin dark grey/black lines, labels that do not dominate.
 
