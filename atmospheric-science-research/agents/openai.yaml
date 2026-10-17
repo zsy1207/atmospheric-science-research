@@ -1,4 +1,0 @@
-interface:
-  display_name: "Atmospheric Science Research"
-  short_description: "Atmospheric data computation and publication figures."
-  default_prompt: "Use $atmospheric-science-research to compute diagnostics from local climate data and produce publication-grade figures."
