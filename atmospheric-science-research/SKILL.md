@@ -21,9 +21,7 @@ New analyses run steps 1–7. Figure-only fixes use Patch Mode.
 
 ## Compute Rules
 
-- **Speed and memory** — Subset first (region, level, time), then check the size. If it fits comfortably in memory, load it and work in numpy / xarray directly; dask only helps when the data does not fit. When it does not, chunk along the dimensions you keep and leave the dimension you reduce over whole, reduce once to the coarsest result the science allows, write that to `data_output/`, and derive every product from the saved file. Prefer vectorized xarray operations over loops over grid points.
-- **Area weighting** — Spatial means use cos(lat) weights: `da.weighted(np.cos(np.deg2rad(da.lat))).mean(("lat", "lon"))`.
-- **Daily climatology** — `groupby("time.dayofyear")` shifts every date after Feb 28 by one day in leap years, and dropping Feb 29 alone does not fix it. Group by `da.time.dt.strftime("%m-%d")`, or convert a copy with `da.convert_calendar("noleap")` (its time axis becomes cftime, so keep the original for everything else). Then smooth with a 31-day running mean (wraparound) unless the user specifies otherwise.
+- **Speed and and efficiency** — Prefer packages and algorithms that improve computational efficiency, such as dask.
 - **Regridding** — `cdo remapcon` / xesmf `"conservative"` for precipitation and fluxes; `remapbil` / `"bilinear"` for smooth state variables (T, Z, u, v, q).
 - **Regional padding** — Pad subsets by at least 1 grid point beyond the target bounds so maps have no blank border.
 
