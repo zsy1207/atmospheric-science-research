@@ -2,309 +2,142 @@
 
 Read before writing or changing plot code. The rendered PNG, not code parameters, is ground truth.
 
-## Contents
+## Size and Fonts
 
-- [Colormaps and Levels](#colormaps-and-levels)
-- [Projections](#projections)
-- [Layout](#layout)
-- [Maps](#maps)
-- [Tibetan Plateau Masking](#tibetan-plateau-masking)
-- [Vectors and Contours](#vectors-and-contours)
-- [Significance](#significance)
-- [Gridlines and tick labels](#gridlines-and-tick-labels)
-- [Contour overlays](#contour-overlays)
-- [Other Figure Types](#other-figure-types)
-- [Export](#export)
+Figure widths are final print widths: 50–85 mm single column, 105–170 mm double column, height under 228 mm. Font sizes are therefore print sizes: panel letters 9–10 pt bold, panel descriptions 8–9 pt, everything else (ticks, labels, legends, colorbar, vector key) 7–9 pt, never below 7 pt.
 
-## Colormaps and Levels
-
-`import cmaps` and explicit discrete `levels` for filled fields. Default to domain-specific `cmaps`; use `viridis` only when a perceptually uniform generic sequential map is the best justified fit. Never `jet`, `rainbow`, `MPL_jet`, `MPL_rainbow`, `NCV_jet`.
-
-| Context | Recommended `cmaps` | Rule |
-|---|---|---|
-| Temperature | `temp_19lev`, `hotcolr_19lev` | Sequential |
-| Temperature anomaly | `temp_diff_18lev`, `BlueWhiteOrangeRed`, `BlWhRe` | Diverging, center 0 |
-| Precipitation | `precip_11lev`, `precip3_16lev`, `CBR_wet` | White/light = dry |
-| Precipitation anomaly | `precip_diff_12lev`, `CBR_drywet`, `GMT_drywet` | Brown=dry, green=wet |
-| Wind speed | `wind_17lev` | Sequential |
-| SST | `temp_19lev`, `cmocean_thermal` | Sequential |
-| SST anomaly | `GHRSST_anomaly`, `MPL_sstanom` | Diverging, center 0 |
-| Geopotential / SLP | `BlAqGrYeOrRe`, `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | Sequential |
-| Humidity / moisture | `MPL_BuGn`, `MPL_YlGnBu` | Sequential |
-| Vorticity / divergence / omega | `BlWhRe`, `NCV_blu_red`, `hotcold_18lev` | Diverging, center 0 |
-| Correlation / regression | `NCV_blu_red`, `BlueWhiteOrangeRed`, `MPL_RdBu_r` | Symmetric when signed |
-| Topography | `GMT_topo`, `topo_15lev` | Terrain |
-| Generic absolute | `BlAqGrYeOrReVi200`, `MPL_YlOrRd` | Sequential |
-| Generic anomaly | `BlueWhiteOrangeRed`, `BlWhRe`, `NCV_blu_red` | Diverging, center 0 |
-
-### Diverging anomaly scale
-
-MUST:
-
-- Center at zero; include zero in ticks; use matched positive/negative limits unless justified.
-- Use explicit symmetric `levels` with a diverging `cmap`. For `contourf`, shared `levels` + `cmap` + `extend` define the scale; no separate norm is needed. Use `BoundaryNorm` only for `pcolormesh` / image-style mappables that need discrete bins.
-- Pass `extend="both"` to `contourf` / `colorbar` so out-of-range values render as extension triangles, not silently clipped fill.
-- For comparable panels, reuse the same `levels`, `cmap`, and `extend` across every panel — never let panels recompute their own scale.
-
-### Sequential scale
-
-MUST:
-
-- Use monotonic lightness; avoid categorical colors for continuous variables.
-- Use physically meaningful endpoints and ticks.
-- Pass `extend="both"` (or `"max"` / `"min"` when one tail is physically closed, e.g. precipitation ≥ 0) whenever values can exceed `levels`.
-- For comparable `contourf` panels, share the same `levels`, `cmap`, and `extend`. For `pcolormesh` / image-style panels, also share one `BoundaryNorm` when discrete bins are required.
-
-Set scientifically interpretable levels from domain knowledge. Never auto-scale per panel. If the signal is hidden or saturated, inspect summary ranges, then set common readable levels.
-
-### Colorbar design
-
-- Horizontal colorbars below maps and compact multi-panel groups; vertical for standalone maps or right-side shared legends.
-- Short unit labels: `SST anomaly (°C)`, `r"Wind speed (m s$^{-1}$)"`, `r"Precipitation (mm day$^{-1}$)"`.
-- Never longer than the panel group it describes.
-- Same ticks and limits across comparable panels.
-- Maintain a restrained, concise figure style.
-
-### Forbidden
-
-- `jet`, `rainbow`, `nipy_spectral`, and saturated hue wheels for quantitative fields.
-- Red–green-only categorical encodings.
-- Diverging maps not centered on zero for anomaly fields.
-- Per-panel autoscaled colorbars for a panel set that should be compared.
-- Colorbars without units or with too many tick labels.
-
-## Projections
-
-| Region | Projection |
-|---|---|
-| Global | `PlateCarree(central_longitude=180)` or `Robinson` |
-| Pacific-centered | `PlateCarree(central_longitude=180)` |
-| Tropics | `Mercator` |
-| Mid-latitude regional | `PlateCarree` (default) or `LambertConformal` |
-| Polar | `NorthPolarStereo` / `SouthPolarStereo` |
-
-- For global fields, add a cyclic point or roll coordinates to avoid a dateline seam.
-  ```python
-  from cartopy.util import add_cyclic
-  # da: xarray.DataArray with dims (lat, lon)
-  cyclic_data, cyclic_lon = add_cyclic(da.values, coord=da["lon"].values, axis=-1)
-  ax.contourf(cyclic_lon, da["lat"].values, cyclic_data, transform=ccrs.PlateCarree())
-  ```
-- **Pass `transform=ccrs.PlateCarree()`** (or the actual data CRS) to every Cartopy plot call: `contourf`, `contour`, `pcolormesh`, `quiver`, `streamplot`, `scatter`, `add_geometries`. Data CRS and display projection are independent; omitting `transform` silently treats data coordinates as projected meters and produces a wrong map.
-
-## Layout
-
-Use Arial for all figure text and keep mathtext units upright:
+Arial, with Helvetica as fallback; when patching, keep the project's existing font. Mathtext uses the same family so units stay upright:
 
 ```python
 plt.rcParams.update({
-    "font.family": "Arial",
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica"],
     "mathtext.default": "regular",
     "mathtext.fontset": "custom",
-    "mathtext.rm": "Arial",
-    "mathtext.it": "Arial:italic",
-    "mathtext.bf": "Arial:bold",
+    "mathtext.rm": "sans",
+    "mathtext.it": "sans:italic",
+    "mathtext.bf": "sans:bold",
 })
 ```
 
-Write units with mathtext superscripts: `r"W m$^{-2}$"`, `r"kg m$^{-2}$ s$^{-1}$"`, `r"m s$^{-1}$"`. Never slash notation (`W/m^2`).
+Units in mathtext superscripts: `r"W m$^{-2}$"`, `r"m s$^{-1}$"`. Never slash notation.
 
-Starting figure sizes: use at least 50 mm width, 50–85 mm for single-column figures, 105–170 mm for double-column figures, and keep height under 228 mm.
+## Colormaps and Levels
 
-- `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels, shared colorbars, or mixed content.
-- Shared variable + range → one shared colorbar; size with `shrink`, `aspect`, or a dedicated narrow `GridSpec` row/column.
-- Minimum readable font 10 pt; prefer 12–16 pt for ticks, labels, legends, colorbars. Treat preferred sizes as default starting settings and adjust to the rendered figure's actual layout, density, and publication scale without dropping below readability.
-- For Cartopy maps, recheck layout after adding colorbars — GeoAxes often produce unexpected spacing.
+`import cmaps`; explicit discrete `levels` for every filled field.
 
-### Panel labels and descriptions
+- Absolute fields → sequential, light = low. Temperature: `MPL_YlOrRd`, `cmocean_thermal`. Precipitation / moisture: `CBR_wet`, `MPL_YlGnBu` (white = dry). Other: `viridis`.
+- Relative fields (anomaly, difference, trend, regression, correlation) → diverging, white at 0, symmetric `levels` with 0 in the ticks. Temperature and generic: `BlWhRe`, `MPL_RdBu_r`. Precipitation / moisture: `MPL_BrBG`, `CBR_drywet`.
+- Never rainbow or hue-wheel maps (`jet`, `rainbow`, `nipy_spectral`, `BlAqGrYeOrRe*`, `temp_19lev`, `wind_17lev`).
+- `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
+- Comparable panels share `levels`, `cmap`, `extend` (and one `BoundaryNorm` for `pcolormesh`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
+- Colorbars: horizontal below maps, vertical for a standalone map or a right-side shared bar; narrow (`aspect` 25–40), never longer than the panel group, few ticks, short label with units. One shared colorbar per variable and scale.
 
-- Lower-case bold upright labels: `a`, `b`, `c`, ...; no punctuation after the letter.
-- Put minimal tag descriptions centered over each panel, anchored to the axes frame; they do not need to follow the panel letter.
-- Default sizes: panel letters 20 pt; minimal descriptions 18 pt; adjust to the rendered figure's actual layout, density, and publication scale.
-- Align every description baseline to the same y-position within each row.
-- Keep descriptions to short noun phrases, preferably 6 words or fewer; no full sentences, methods, results, interpretation, or caveats.
-- Do not add nonessential explanatory text and mark inside the figure; move interpretation, caveats, methods, and data notes to the caption, README, or manuscript text.
-- Use descriptions only where they clarify: `Historical`, `SSP5-8.5`, `850 hPa wind`, `El Niño composite`.
-- No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
+## Layout and Panels
 
-### Shared elements
-
-- Shared colorbar for the same variable and scale.
-- Shared legend for repeated categories across panels.
-- Shared axis labels for a grid of statistical plots with repeating axes.
-- Shared annotation in margin only if it clarifies the entire figure.
+- `constrained_layout=True` for simple grids; `GridSpec` / `subplot_mosaic` for 3+ panels or shared colorbars. Recheck spacing after adding colorbars to GeoAxes.
+- Panel letters: lower-case bold `a`, `b`, `c` at each panel's upper-left above the frame: `ax.text(0, 1.02, "a", transform=ax.transAxes, ha="left", va="bottom", fontweight="bold")`.
+- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, ..., ha="center", va="bottom")`. Letters, descriptions, and the vector key share one y per row.
+- No `suptitle`, figure caption, default axis title, data stamp, or explanatory text inside the figure; interpretation goes to the caption or README.
 
 ## Maps
 
-- Coastlines by default. No national/provincial borders unless scientifically/geographically necessary.
-- Indicate latitude/longitude on every map via ticks or gridline labels.
-- Gridlines: `draw_labels=True`; disable top/right labels; tick font 12–14 pt by default, never below 10 pt.
-- Dashed red/blue boxes for study regions; linewidth `1.2–2.0`, high zorder.
-- Regional maps must avoid white border around the plotted field; adjust the subset or padding if blank edges appear in the rendered PNG.
+| Region | Projection |
+|---|---|
+| Global or Pacific-centered | `PlateCarree(central_longitude=180)` or `Robinson` |
+| Tropics and mid-latitude regional | `PlateCarree` (default); `LambertConformal` for mid-latitudes when justified |
+| Polar | `NorthPolarStereo` / `SouthPolarStereo` |
+
+- Pass `transform=ccrs.PlateCarree()` to every Cartopy plot call (`contourf`, `contour`, `pcolormesh`, `curly_vector`, `scatter`, `add_geometries`); without it coordinates are treated as projected metres.
+- Global fields need a cyclic point:
+  ```python
+  from cartopy.util import add_cyclic
+  cyc, cyc_lon = add_cyclic(da.values, x=da["lon"].values, axis=-1)
+  ```
+- `ax.coastlines(linewidth=0.8, color="0.2")`; no national borders unless scientifically needed.
+- `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.6, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False`. In multi-panel maps label only the left column and bottom row.
+- Study-region boxes: dashed red/blue, linewidth 1.2–2.0, high zorder.
 
 ## Tibetan Plateau Masking
 
-For plots covering ~25°N–40°N, 70°E–105°E, mask low-level data over Tibet.
+Applies to plots covering ~25°N–40°N, 70°E–105°E.
 
-| Level | Action |
-|---|---|
-| 1000 / 925 / 850 hPa | Mask required |
-| 700 hPa | Mask recommended |
-| ≥ 500 hPa | No mask |
-
-Applies to wind, height, temperature, humidity, vorticity, divergence — any pressure-level field at or below 850 hPa.
-
-### 1. Physical Masking (Computation Phase)
-Keep grid points where `ps ≥ P_level`; mask the rest (they lie below the topography).
+Physical mask, every pressure level: points with surface pressure below the level are underground and hold extrapolated values. `ps` and `P_level` in hPa; ERA5 `sp` is in Pa, convert first.
 
 ```python
-# data at P_level (hPa); ps in hPa. ERA5 raw `sp` is in Pa — convert first,
-# else `ps >= 850` silently masks the entire field.
-data_masked = data.where(ps >= 850)   # generalize: ps >= P_level
+data_masked = data.where(ps >= P_level)   # same for u and v
 ```
 
-### 2. Visual Masking (Plotting Phase)
-Overlay a grey polygon to present the topography boundary cleanly:
+Visual mask, required at 700 hPa and below (700 / 850 / 925 / 1000 hPa): overlay the plateau polygon after filled and vector layers, before boxes and annotations.
 
 ```python
+from pathlib import Path
 import geopandas as gpd
-import cartopy.crs as ccrs
-import os
 
-tibet_shp = os.path.expanduser("~/code/data/map/Tibet/Tibet.shp")
-if os.path.exists(tibet_shp):
-    tibet = gpd.read_file(tibet_shp)
-    ax.add_geometries(
-        tibet.geometry, crs=ccrs.PlateCarree(),
-        facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5,
-    )
+TIBET_SHP = Path(__file__).resolve().parents[1] / "data/map/Tibet/Tibet.shp"
+ax.add_geometries(gpd.read_file(TIBET_SHP).geometry, crs=ccrs.PlateCarree(),
+                  facecolor="lightgrey", edgecolor="grey", linewidth=0.5, zorder=5)
 ```
 
-Place the visual mask after filled/vector layers and before final borders/annotations. For quiver, also mask `u`/`v` over Tibet or place the polygon above arrows.
+If the file is missing, use the 3000 m orography contour when surface geopotential is available; otherwise mark the figure `BLOCKED`.
 
 ## Vectors and Contours
 
-Goal: arrows distinguishable, field structure visible.
-
-- Muted grey arrows (`#555555`), width `0.0025–0.004`; avoid black arrow fields unless sparse.
-- Skip factor by resolution: 2.5° → 1–2; 1° → 3–5; 0.25° → 8–15. Larger domains need more skipping.
-- Reference magnitude: choose one scientifically interpretable value near the median speed, not the maximum.
-- Tune `scale`, `width`, and skip so vectors and the single quiver key are clear; the key arrow must be neither tiny nor dominant.
-- Quiver key outside/top-right, aligned to the description baseline. Keep `labelpos="W"` and tune `X` so the key arrow's right edge aligns with the map's right boundary without clipping.
-- For dense or warped fields, try Cartopy `regrid_shape=20` as a first guess.
-- Overlay contours only when they add physical interpretation; thin dark grey/black lines, labels that do not dominate.
+Draw wind and flux vectors with Skyborn's `curly_vector`. It samples the field itself, so do not subsample with `[::n]`.
 
 ```python
-Q = ax.quiver(lon[::n], lat[::n], u[::n, ::n], v[::n, ::n],
-              transform=ccrs.PlateCarree(), color="#555555",
-              scale=200, width=0.003, zorder=3)
-ax.quiverkey(Q, 1.0, 1.04, 10, r"10 m s$^{-1}$", labelpos="W",
-             coordinates="axes", fontproperties={"size": 12}, labelsep=0.05)
+from skyborn.plot import curly_vector, curly_vector_key
+
+cv = curly_vector(ax, lon, lat, u, v, transform=ccrs.PlateCarree(),
+                  density=0.5, ref_magnitude=10, ref_length=0.06,
+                  color="#555555", linewidth=0.8, zorder=3)
+key = curly_vector_key(ax, cv, U=10, units=r"m s$^{-1}$", labelpos="W",
+                       frameon=False, show_description=False,
+                       width=0, height=0, padding=0, x=1.0, y=1.02,
+                       arrow_props={"color": "#555555", "linewidth": 0.8},
+                       text_props={"fontsize": 8})
+fig.canvas.draw()                    # after the final layout change
+key.x = 1.0 - key.patch.get_width()  # key arrow tip on the map's right edge
 ```
+
+- `density`: start at 0.5; for non-PlateCarree projections add `regrid_shape=20–30`.
+- Always pass `ref_magnitude` (one value near the median speed, also the key's `U`); without it each panel scales to its own maximum. `ref_length` is a fraction of axes width.
+- Always pass `units` in mathtext; the default `"m/s"` breaks the unit rule.
+- One key per figure, top-right outside the map on the letter/description baseline, `arrow_props` matching the field arrows. Panels sharing a key use the same `ref_magnitude` and `ref_length`; if their widths differ, pass `ref_length_px` instead (if the installed Skyborn rejects it, give each panel its own key).
+- Contours only when they add interpretation (zero lines, thresholds). Zero contour dark, 0.8–1.0 pt; others 0.4–0.6 pt with moderate alpha; label selected contours only.
 
 ## Significance
 
-Make significance visible without obscuring the field.
-
-- Hatching: sparse `"..."`; avoid dense `"/////"` or `"xxxxx"`.
-- Scatter: tune marker size against the rendered PNG; start `0.3–1.0` with alpha `0.4–0.6`.
-- Ordinary significance masks: dark grey/black with alpha `0.35–0.7`; avoid saturated stippling colors.
-- Signed significant responses: use low-saturation blue/red with matched alpha and small markers only when the sign must be visually distinguished.
-- Subsample every 2–4 grid points; high-resolution grids need stronger subsampling to avoid black patches while preserving significant-region structure.
+Visible but subordinate to the field. Default to subsampled dots:
 
 ```python
-ax.contourf(lon, lat, p_value, levels=[0, 0.05, 1],
-            hatches=["...", None], colors="none",
-            transform=ccrs.PlateCarree())
+step = 3  # every 2–4 grid points
+lon2, lat2 = np.meshgrid(lon[::step], lat[::step])
+sig = p_value[::step, ::step] < 0.05
+ax.scatter(lon2[sig], lat2[sig], s=0.6, c="k", alpha=0.5, linewidths=0,
+           transform=ccrs.PlateCarree())
 ```
 
-## Gridlines and tick labels
-
-- Sparse, readable lon/lat labels; typical intervals 30°/60° globally and 5°/10°/20° regionally.
-- Never combine dense tick labels with dense gridlines.
-- Multi-panel maps: label only the left column and bottom row when possible.
-
-## Contour overlays
-
-- Use to clarify gradients, zero crossings, or physically meaningful thresholds.
-- Label selected contours only — too many labels degrade readability.
-- Zero contour: dark neutral or black, `0.8–1.0` pt.
-- Secondary contours: `0.4–0.6` pt, moderate alpha.
+Tune size and alpha against the PNG so dots never merge into dark patches. Use low-saturation red/blue only when the sign of the response must be distinguished. Hatching alternative: sparse `"..."` via `contourf(..., levels=[0, 0.05, 1], hatches=["...", None], colors="none")`; never dense hatching.
 
 ## Other Figure Types
 
-### Color
-- Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
-
-### Time series
-
-- Thin lines with restrained markers; zero/reference lines for anomaly indices (red/orange for heatwave or positive index, light blue bars for precipitation or paired index).
-- Show uncertainty via shaded confidence bands, ensemble spread, or error bars.
-- Seasonal/year tick locators deliberate; no overcrowded date labels.
-- Direct labels for 2–4 lines when clearer than a legend.
-- Annotate correlation, p markers, and highlighted years sparingly.
-
-### Seasonal cycle
-
-- Month labels or compact month initials.
-- Consistent line styles between climatology and experiments; shaded spread for ensembles.
-- Explicit y-axis units.
-
-### Scatter and regression
-
-- Semi-transparent small markers; lower alpha for dense data.
-- Regression line and confidence interval only when statistically justified.
-- Report `r`, `R²`, slope, or p-value in a small annotation if central to the result.
-- No oversized bubble markers unless size is a meaningful third variable.
-
-### Cross-section / profile
-
-- Pressure axis inverted (1000 bottom → 100 top); symlog only when scientifically justified.
-- Fill topography/orography in grey.
-
-### Hovmöller
-
-- Same colormap rules as maps; time on one axis, lat/lon on the other.
-
-### Heatmaps and correlation matrices
-
-- Diverging scales for correlations and signed differences; center at zero with limits `[-1, 1]` unless deliberately restricted.
-- Square cells when possible; rotate labels only as needed.
-- Mark significance with small dots, outlines, or hatches — never overprint numbers in every cell.
-
-### Box, violin, and bar plots
-
-- Prefer the distribution for small/moderate samples: jittered points, box + points, or violin + median.
-- Bars only when the aggregate is the message.
-- Show uncertainty: standard error, CI, IQR, or ensemble spread.
-- No 3D bars or gradient-filled bars.
-
-### EOF / PCA diagnostics
-
-- Spatial modes: map panels with diverging colormap centered at zero.
-- PCs: normalized time series with zero line.
-- Explained variance: percent in title or label.
-- Explicit sign convention if modes are flipped.
-
-### Taylor diagrams and skill summaries
-
-- Correlation angular axis, std-ratio radial axis, reference at `(1, 1)`.
-- Readable markers; direct labels or compact legend.
-- Split into groups when many model markers.
-- Muted categorical colors and marker shapes.
-
-### Volcano plots and generic scatter summaries
-
-Not core atmos/ocean diagnostics but may appear in interdisciplinary work.
-
-- Muted nonsignificant points; one or two accent colors for significant groups.
-- Label only top-priority points.
-- Add threshold lines with legend/caption explanation.
-- No saturated red/green-only up/down encoding.
+- Time series: thin lines, zero or reference line for anomalies, uncertainty as shaded bands.
+- Cross-section / profile: pressure axis inverted (1000 hPa at the bottom); topography filled grey.
+- Correlation matrices: diverging, centered at 0, limits `[-1, 1]`; significance as dots or outlines, not numbers in every cell.
+- EOF: diverging maps centered at 0; PCs normalized with a zero line; explained variance in the panel description; state the sign convention.
+- Scatter / regression: annotate r, slope, or p only when central to the result.
 
 ## Export
 
+Each plot script takes an optional `--final` flag: without it a 300 dpi PNG for RR, with it a 600 dpi PNG and a PDF.
+
 ```python
-fig.savefig("path.png", dpi=600, bbox_inches="tight", pad_inches=0.05)
+exts = ("png", "pdf") if final else ("png",)
+for ext in exts:
+    fig.savefig(f"{stem}.{ext}", dpi=600 if final else 300,
+                bbox_inches="tight", pad_inches=0.05)
 plt.close(fig)
 ```
+
+If the PDF is large or slow, pass `rasterized=True` to dense layers.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Atmospheric Science Research"
-  short_description: "Verified atmospheric data workflows."
-  default_prompt: "Use $atmospheric-science-research to analyze local climate data and produce verified figures."
+  short_description: "Atmospheric data computation and publication figures."
+  default_prompt: "Use $atmospheric-science-research to compute diagnostics from local climate data and produce publication-grade figures."

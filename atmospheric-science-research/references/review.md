@@ -1,40 +1,21 @@
 # Review & Revision (RR)
 
-Bounded, figure-focused loop. Catches visual defects and obvious data-sanity issues; not a full science re-audit.
+Bounded loop that catches visual defects and obvious data-sanity issues. Not a full scientific re-audit.
 
 ## Loop
 
-1. Render the figure if needed.
-2. Open the actual PNG. Never review code alone.
-3. Check **layout** first: subplot balance, colorbar proportion, overlaps, clipping, whitespace, legend placement.
-4. Cross-check against `plot-standards.md` and the Reject Conditions table below.
-5. Check **physics**: value range, units, sign convention, pressure-axis orientation, spatial pattern.
-6. Classify:
-   - `PASS` — no visual or obvious data-sanity issue remains.
-   - `REVISE` — list all visible issues from the current PNG, batch all safe fixes that do not require new information, re-render once, reopen PNG.
-   - `BLOCKED` — user decision, missing input/dependency, or unreadable output.
+1. Render a 300 dpi PNG (plot script without `--final`) and open it; zoom in on small text, the key, and stippling.
+2. Check layout: panel balance, colorbar proportion, overlap, clipping, whitespace.
+3. Check every section of `plot-standards.md`; any rule not met means `REVISE`.
+4. Check physics: value range, units, sign convention, pressure-axis orientation, spatial pattern.
+5. Classify:
+   - `PASS` — nothing remains.
+   - `REVISE` — list every visible issue, batch all fixes that need no new information, re-render once, start the next iteration.
+   - `BLOCKED` — needs a user decision, a missing input or dependency, or the output is unreadable.
 
-Run at least one RR iteration per figure; never declare `PASS` without it. Max 10 iterations per figure.
+Max 5 iterations per figure. If not `PASS` by then, or the same issue persists after two fix attempts, classify `BLOCKED` and record the remaining issues for the README.
 
-## Top-Journal Visual Gate
-
-Even when no specific rule fails, revise if the figure would look out of place in a top atmospheric-science journal — cluttered, unbalanced, visually noisy, inconsistently styled, or hard to read.
-
-## Reject Conditions
-
-Revise immediately if any item is true.
-
-| Area | Reject if |
-|---|---|
-| Text | Font not Arial; unstyled default axis title; figure-level `suptitle()`; figure-level caption; source/data stamp; missing units/labels; units not mathtext superscripts; clipped text; font < 10 pt; nonessential explanatory text inside the figure |
-| Panels | Multi-panel without bold panel letters (`a`, `b`, ...) at each panel's upper-left; descriptions not centered over each panel or not minimal; quiver keys not top-right aligned to the description baseline; inconsistent panel styling |
-| Colormap | Uses `jet` / `rainbow` / `nipy_spectral`; no explicit `levels`; missing `extend=` when values may exceed `levels`; anomaly not 0-centered; comparable `contourf` panels do not share `levels` + `cmap` + `extend`; comparable `pcolormesh` / image-style panels use independent bin norms |
-| Geography | Wrong projection; missing `transform=ccrs.PlateCarree()` on `contourf` / `pcolormesh` / `quiver` / `scatter`; missing coastlines; unnecessary national/provincial borders; missing latitude/longitude indication; dateline seam; missing relevant inset; regional map fails to avoid white border |
-| Tibet | ≤ 850 hPa field over Tibet not masked |
-| Vectors | Too dense / sparse; missing or unclear quiver key; bad key magnitude, size, or position; key arrow's right edge not aligned with the map's right boundary |
-| Significance | Invisible; dot size inappropriate; not subsampled when needed; obscures signal; ordinary masks use saturated colors; signed masks are not distinguishable when sign matters |
-| Layout | Crowded panels; dominant colorbar; overlap; clipping; poor whitespace; figure style is not restrained and concise |
-| Physics | Implausible values; wrong sign convention; wrong pressure-axis orientation; missing or wrong units |
+Even when no rule fails, revise if the figure would look out of place in a top atmospheric-science journal: cluttered, unbalanced, inconsistently styled, or hard to read.
 
 ## Quick Fixes
 
@@ -42,20 +23,10 @@ Starting points; tune against the rendered PNG.
 
 | Defect | First fix |
 |---|---|
-| Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, `aspect=25–40`, or dedicated `GridSpec` slot |
-| Regional map shows white border | Adjust the subset or padding so the rendered map has no blank edge |
-| Quiver key too small, large, or misaligned | Tune magnitude, `scale`, `width`, and `X`; keep `labelpos="W"` and align the key arrow's right edge with the map boundary |
-| Quiver too dense / sparse | Adjust skip: 2.5° → 1–2, 1° → 3–5, 0.25° → 8–15 |
-| Ticks overlap | Fewer ticks via `FixedLocator` / `MaxNLocator`; reduce font only if still readable and never below 10 pt |
-| Gridline edge labels collide | `gl.top_labels = False; gl.right_labels = False` |
-| Dateline seam | Check `transform=ccrs.PlateCarree()`, cyclic point, central longitude |
-| Map warped, empty, or off-axis | Add `transform=ccrs.PlateCarree()` to every Cartopy plot call |
-| Anomaly not centered | Symmetric levels around 0 + diverging `cmaps` |
-| Out-of-range fill flat at min/max | `extend="both"` on `contourf` + colorbar (`"max"` / `"min"` if one-sided, e.g. precip) |
-| Fill washed out / saturated | Inspect summary range; reset common interpretable levels |
-| Stippling invisible | Increase marker size / alpha or use sparse hatching `"..."` |
-| Stippling too dense | Increase subsampling or reduce marker size / alpha |
-| Legend hides data | Move outside axes with `bbox_to_anchor` |
-| Cross-section / profile wrong | Invert pressure axis; verify hPa units and ordering |
-| Tibet not masked | Add grey Tibet polygon; hide low-level arrows over Tibet |
-| Layout still wrong | Change figure geometry or `GridSpec`; code parameters are only estimates |
+| Colorbar overlaps or dominates | `shrink=0.5–0.8`, `pad=0.06–0.10`, or a dedicated `GridSpec` slot |
+| Ticks overlap | Fewer ticks via `MaxNLocator`; shrink the font only down to the minimum |
+| Key arrow off the right edge | Redo `fig.canvas.draw()` and `key.x = 1.0 - key.patch.get_width()` after the last layout change |
+| Vectors too dense / sparse | Lower / raise `density` |
+| Stippling invisible / too dense | Change marker size, alpha, or the subsampling step |
+| Legend hides data | Move it outside the axes with `bbox_to_anchor` |
+| Layout still wrong | Change figure geometry or the `GridSpec`; code parameters are only estimates |

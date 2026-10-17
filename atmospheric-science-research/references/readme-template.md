@@ -1,6 +1,6 @@
 # README Template
 
-Write one Chinese `README.md` after RR reaches `PASS` for all figures. Match the actual project layout — do not restructure to fit the template.
+Write one Chinese `README.md` once every figure is `PASS` or `BLOCKED`. Match the actual project layout; do not restructure the project to fit the template.
 
 ```markdown
 # 项目说明
@@ -19,15 +19,17 @@ Write one Chinese `README.md` after RR reaches `PASS` for all figures. Match the
 - `data_output/fig1/xxx.nc`：实现功能
 - `fig1/compute_xxx.py`：实现功能
 - `fig1/plot_xxx.py`：实现功能
-- `fig1/fig1_xxx.png`：实现功能
+- `fig1/fig1_xxx.png`、`fig1/fig1_xxx.pdf`：实现功能
 
 ## 3. 实现算法与细节
 
-- 如无需展开，可写：`本任务算法直接，省略。`
-- 若有复杂处理，写清关键公式、统计方法、重网格方案、加速策略和重要假设。
+- 采用的假设与默认选择：逐条列出用户确认的选择和可逆的默认设置，算法简单时也要写。
+- 算法如无需展开，可写：`本任务算法直接，省略。`
+- 若有复杂处理，写清关键公式、统计方法、重网格方案和加速策略。
 
 ## 4. 可能存在的问题与风险
 
+- 列出 `BLOCKED` 的图、原因和剩余问题，以及其他未解决的风险。
 - 无则写：`目前无明显问题。`
 
 ## 5. 图片简述
@@ -39,4 +41,4 @@ Write one Chinese `README.md` after RR reaches `PASS` for all figures. Match the
 - （更新时填写日期、变更内容、影响文件）
 ```
 
-On later modification, append to「版本更新」and update only affected path/figure sections.
+On later modification, including Patch Mode, append to「版本更新」and update only the affected path and figure sections.

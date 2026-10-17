@@ -1,81 +1,44 @@
 ---
 name: atmospheric-science-research
-description: Use for climatology data processing, diagnostic computation, and publication-grade plotting.
+description: Computation and publication-grade plotting for atmospheric and climate research on local data files (NetCDF, GRIB, HDF5, Zarr; ERA5, CMIP, reanalysis). Use whenever the user works with gridded lat/lon or pressure-level data and needs diagnostics (climatology, anomalies, composites, regression/correlation, trends, EOF, extremes) or figures (Cartopy maps, cross-sections, time series), even if they do not say "paper figure". Triggers on 气候态、距平、合成分析、再分析资料、诊断计算、论文配图.
 ---
 
 # Atmospheric Science Research
 
-Use whenever the task touches local atmospheric or climate data files and benefits from a reproducible project structure rather than an inline answer.
+Compute diagnostics on local atmospheric data and plot them to journal standard, inside a reproducible project.
 
-## Operating Contract
+## References
 
-Read references on demand:
-
-| Reference | Trigger |
+| File | Read |
 |---|---|
 | `references/plot-standards.md` | Before writing or changing plot code |
-| `references/review.md` | Before any review-revision (RR) loop |
-| `references/readme-template.md` | After all figures `PASS`, before writing README |
-
-## Routing
-
-| Request type | Entry point |
-|---|---|
-| New analysis on local data | Full Workflow (1–7) |
-| Figure-only fix on existing project | Patch Mode (skip 1–4, run 5–6) |
+| `references/review.md` | Before the first review-revision (RR) iteration |
+| `references/readme-template.md` | Before writing or updating the README |
 
 ## Workflow
 
-1. **Probe** — Metadata-only inspection; never write Python preview scripts.
-   - NetCDF: `ncdump -h file.nc`
-   - GRIB: `cdo sinfon file.grib`
-   - HDF5: `h5dump -H file.h5`
-   - Zarr / other: metadata-only Python one-liner (`xr.open_zarr(...).info()`).
-   - *Fallback*: if a CLI is missing, use a metadata-only Python one-liner (`xarray`, `netCDF4`, or `h5py` to read headers/info).
-2. **Plan** — Ask only scientific questions that change the result; provide your recommended answer with each. Record every adopted assumption (user choices and reversible defaults) in the plan and final README, never only in code.
-3. **Build** — Keep or create a runnable layout: `figN/compute_*.py`, `figN/plot_*.py`, `data_output/figN/...`. Do not reorganize existing projects unless asked.
-4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots consume them. For long computations, once the output schema is clear, start drafting the plot script while the compute job runs; revise it after outputs exist.
-5. **Plot** — Read `plot-standards.md`; apply its journal style and layout conventions.
-6. **Review** — Render PNG, open the image, run RR until `PASS` or `BLOCKED`.
-7. **Document** — After all figures `PASS`, write or update one Chinese `README.md` listing adopted assumptions and unresolved risks.
+New analyses run steps 1–7. Figure-only fixes use Patch Mode.
+
+1. **Probe** — Inspect metadata only: `ncdump -h`, `cdo sinfon`, `h5dump -H`, or a metadata-only Python one-liner for Zarr.
+2. **Plan** — Ask only scientific questions that change the result, each with a recommended answer. Record every adopted assumption in the plan and the README.
+3. **Build** — `figN/compute_*.py`, `figN/plot_*.py`, `data_output/figN/...`. Do not reorganize existing projects unless asked.
+4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots read them.
+5. **Plot** — Follow `plot-standards.md`.
+6. **Review** — Run RR per `review.md` until each figure is `PASS` or `BLOCKED`. Open the rendered PNG in every iteration; reviewing code alone never counts.
+7. **Export and document** — Export final files (`plot-standards.md` § Export), then write or update one Chinese `README.md`. `BLOCKED` figures and unresolved risks go in its risk section.
 
 ## Compute Rules
 
-- **Use fast tools** — Vectorize with `xr.where` / boolean masks, not Python loops over grid points. Reduce with `.mean(dim=..., skipna=True)` (and `.sum` / `.std`) to preserve coords. Climatology and statistics: `groupby("time.dayofyear").mean()`, `xr.corr`, `xr.cov`, `xr.polyfit`, and `xr.apply_ufunc(..., dask="parallelized")` for custom kernels. Regrid with `cdo remap*` (or `xesmf`), not hand-rolled interpolation.
-- **NetCDF** — `xarray.open_dataset(path, engine="h5netcdf", chunks="auto")` for one file; `xarray.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")` for many. Fall back to the default engine if `h5netcdf` errors. Raw fields stay lazy until NetCDF write.
-- **Other formats** — For GRIB / HDF / Zarr / other xarray-readable inputs, preserve parallel dask-backed reads (`parallel=True`, `chunks="auto"`) or the reader's closest equivalent.
-- **Dask boundary** — Keep raw daily or sub-daily fields lazy. Reduce to the coarsest scientifically valid temporal stack before eager loops: annual fields for annual diagnostics, daily/sub-daily climatologies for extreme-event diagnostics. Build climatologies at the temporal resolution required by the science, then eager-load only the derived fields needed for repeated algorithmic access.
-- **Compute placement** — Preserve source chunking by default, but rechunk deliberately when an operation requires a single core dimension or coarser algorithm chunks, e.g. `.chunk({"time": -1})` for percentile thresholds, detrending, or `xr.apply_ufunc(..., dask="parallelized")` kernels over `time`. Avoid fine-grained `.compute()` / `.load()` calls inside loops, especially per-year `.compute()`. Trigger dask once at the algorithm boundary where eager-loading prevents repeated I/O, then loop only over in-memory xarray/numpy slices. Do not eager-load raw daily inputs, and do not postpone computation so long that the same lazy graph rereads source data repeatedly.
-- **Regional padding** — When computing or saving a regional subset (e.g. `70°E–105°E, 25°N–40°N`), pad the source field by **at least 1 grid point** beyond the target bounds to avoid white border artifacts.
-
-## Plot Rules
-
-Full standards in `references/plot-standards.md`. Required:
-
-- **Top-journal gate** — every figure must be scientifically defensible, visually balanced, uncluttered, and readable at publication scale: compact multi-panel layouts, bold panel letters, thin coastlines, dashed gridlines, narrow colorbars, and restrained annotations/significance markers.
-- `import cmaps` with explicit discrete `levels`. Sequential for absolute fields; diverging, symmetric, 0-centered for anomalies. Comparable `contourf` panels share `levels`, `cmap`, and `extend`; `pcolormesh` / image-style panels also share the same discrete `BoundaryNorm` when binning is required.
-- Levels must be scientifically meaningful: no washed-out signals, saturation, false boundaries, or scales that exaggerate noise. Pass `extend="both"` (or `"max"` / `"min"` for one-sided fields) so out-of-range values render as extension triangles, not silent clipping.
-- Arial for new figures; preserve an existing project font when patching to avoid style drift. Configure mathtext once and write units with superscripts, e.g. `r"W m$^{-2}$"`, `r"kg m$^{-2}$ s$^{-1}$"`, `r"m s$^{-1}$"` — never slash notation.
-- Maps: show latitude/longitude, add coastlines, omit national/provincial borders unless scientifically needed. Pass `transform=ccrs.PlateCarree()` (or the data CRS) to every Cartopy plot call.
-- Vectors: use one clear quiver key with a reasonable reference magnitude and visible arrow size; avoid too-small or dominant key arrows; align the key arrow's right edge with the map's right boundary.
-- Significance: visible but subordinate; subsampled dots/stippling. Use grey/black for ordinary significance masks; use low-saturation red/blue only when the sign of the significant response must be distinguished.
-- Style: maintain a restrained, concise figure style.
-- Text: do not add nonessential explanatory text and mark inside the figure.
-- Bold 20 pt panel letters at each panel's upper-left; put 18 pt minimal tag descriptions centered over each panel, independent of the letter. Treat these as default starting sizes and adjust to the rendered figure's actual layout, density, and publication scale. Place top-right quiver keys on the description baseline. No figure-level `suptitle`, figure-level captions, unstyled default axis titles, or data stamps.
-- Prefer low-saturation palettes with visible contrast between adjacent colors; avoid pure primary fills.
-- Export PNG at 600 ppi (`dpi=600`, `bbox_inches="tight"`); call `plt.close(fig)` after every figure.
-
-## RR Rules
-
-Full procedure in `references/review.md`. Required:
-
-- Open the rendered PNG every iteration — code review alone is forbidden.
-- Per iteration: layout first (colorbar proportion, panel balance, overlap, clipping) → cross-check `plot-standards.md` + Reject Conditions → physics (range, units, sign convention, pressure-axis orientation) → classify `PASS` / `REVISE` / `BLOCKED`. For `REVISE`, enumerate all visible issues from the current PNG, batch all safe fixes that do not require new information, then re-render once.
-- Run at least one RR iteration per figure; never declare `PASS` without it. Max 10 iterations; if not `PASS` by then, output `BLOCKED`.
-- Top-journal gate — revise if the figure would look out of place in a top atmospheric-science journal: cluttered, unbalanced, or inconsistently styled.
+- **Vectorize** — `xr.where` and boolean masks instead of loops over grid points; `.mean(dim=..., skipna=True)` keeps coords; `xr.corr`, `xr.cov`, and `xr.apply_ufunc(..., dask="parallelized")` for statistics.
+- **Area weighting** — Spatial means use cos(lat) weights: `da.weighted(np.cos(np.deg2rad(da.lat))).mean(("lat", "lon"))`.
+- **Daily climatology** — `groupby("time.dayofyear")` shifts every date after Feb 28 by one day in leap years, and dropping Feb 29 alone does not fix it. Group by `da.time.dt.strftime("%m-%d")`, or convert a copy with `da.convert_calendar("noleap")` (its time axis becomes cftime, so keep the original for everything else). Then smooth with a 31-day running mean (wraparound) unless the user specifies otherwise.
+- **Regridding** — `cdo remapcon` / xesmf `"conservative"` for precipitation and fluxes; `remapbil` / `"bilinear"` for smooth state variables (T, Z, u, v, q).
+- **Reading** — `xr.open_dataset(path, engine="h5netcdf", chunks="auto")` or `xr.open_mfdataset(paths, engine="h5netcdf", parallel=True, chunks="auto")`; fall back to the default engine if `h5netcdf` fails.
+- **Dask boundary** — Keep raw daily fields lazy, reduce to the coarsest stack the science allows, compute once there, then loop only over in-memory slices. Rechunk `{"time": -1}` for percentiles, detrending, or `apply_ufunc` over `time`. Never `.compute()` inside loops.
+- **Regional padding** — Pad subsets by at least 1 grid point beyond the target bounds so maps have no blank border.
 
 ## Patch Mode
 
-For figure-only fixes: read existing code, make the smallest safe change, re-render only affected figures, then RR. Do not rewrite compute code or reorganize directories.
+Read the existing code, make the smallest safe change, re-render only the affected figures, run RR, export, and append a「版本更新」entry to the README.
 
-If RR or inspection reveals a compute bug (wrong variable, unit error, bad climatology baseline, etc.), stop patching and escalate to the Full Workflow from step 2 (Plan).
+If RR reveals a compute bug (wrong variable, unit error, bad climatology baseline), stop patching and restart from step 2.
