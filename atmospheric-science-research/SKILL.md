@@ -51,13 +51,12 @@ Units in mathtext superscripts: `r"W m$^{-2}$"`, `r"m s$^{-1}$"`. Never slash no
 
 ### Colormaps and Levels
 
-`import cmaps`; every colormap comes from `cmaps`, never Matplotlib built-ins such as `viridis`. Use explicit discrete `levels` for every filled field.
+Use explicit discrete `levels` for every filled field. Colormaps come only from this whitelist (reversed `_r` versions allowed, e.g. `RdBu_r` so negatives are blue):
 
-- One-signed fields (temperature, precipitation, humidity, wind speed, geopotential) → sequential, light = low. Temperature: `MPL_YlOrRd`, `MPL_OrRd`. Precipitation / moisture: `CBR_wet`, `MPL_YlGnBu`, `MPL_Blues`, `WhiteBlue` (white = dry). Other: `MPL_YlOrRd`, `MPL_YlGnBu`, `MPL_PuBu`.
-- Signed fields where 0 is meaningful (anomalies, differences, trends, regression, correlation, and raw ω, vorticity, divergence, u, v, moisture-flux divergence, net radiation) → diverging, symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); draw the colorbar with `spacing="proportional"` and tick 0 at the middle of the white bin. Temperature and generic: `BlWhRe`, `MPL_RdBu_r`, `MPL_bwr`, `MPL_PuOr`, `NCV_blu_red`, `temp_diff_18lev`, `cmocean_balance`. Precipitation / moisture: `MPL_BrBG`, `CBR_drywet`, `precip_diff_12lev`.
-- Never rainbow or hue-wheel maps (`jet`, `rainbow`, `nipy_spectral`, `BlAqGrYeOrRe*`, `wind_17lev`).
+- Signed fields where 0 is meaningful (anomalies, differences, trends, regression, correlation, and raw ω, vorticity, divergence, u, v, moisture-flux divergence, net radiation) → diverging: `RdBu`, `BrBG` (precipitation and moisture), `bwr`, `PuOr`, `PRGn`. Use symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); draw the colorbar with `spacing="proportional"` and tick 0 at the middle of the white bin.
+- Non-anomaly heatwave, precipitation, humidity, and wind-speed fields → sequential: `plasma`, `YlGnBu`, `viridis`, `YlOrRd`.
 - `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
-- Comparable panels share `levels`, `cmap`, `extend` (for `pcolormesh`, one `BoundaryNorm(levels, cmap.N, extend="both")`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
+- Comparable panels share `levels`, `cmap`, `extend` (for `pcolormesh`, one `BoundaryNorm(levels, cmap.N, extend="both")` with `cmap = plt.get_cmap(name)`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
 - Colorbars: horizontal below maps, vertical for a standalone map or a right-side shared bar; narrow (`aspect` 25–40), never longer than the panel group, few ticks, short label with units. One shared colorbar per variable and scale.
 
 ### Layout and Panels
@@ -166,7 +165,7 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 |---|---|
 | Text | Arial or the project font; mathtext units; nothing clipped or below 8 pt; no suptitle, caption, or explanatory text |
 | Panels | Bold letters, short centered descriptions, and the vector key on one baseline |
-| Colormap | `cmaps` with explicit `levels`; 0-centered diverging for signed fields with a meaningful zero, sequential otherwise; `extend` set; comparable panels share one scale |
+| Colormap | Whitelisted colormap with explicit `levels`; 0-centered diverging for signed fields with a meaningful zero, sequential otherwise; `extend` set; comparable panels share one scale |
 | Maps | Coastlines; lat/lon labels; no dateline seam or blank border |
 | Tibet | At 700 hPa and below, no arrows, contours, or dots on the plateau; grey polygon drawn |
 | Vectors | Readable density; one key at top-right with its tip on the right edge |
