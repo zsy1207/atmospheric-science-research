@@ -51,9 +51,9 @@ Units in mathtext superscripts: `r"W m$^{-2}$"`, `r"m s$^{-1}$"`. Never slash no
 
 ### Colormaps and Levels
 
-Use explicit discrete `levels` for every filled field. Colormaps come only from this whitelist (reversed `_r` versions allowed, e.g. `RdBu_r` so negatives are blue):
+Use explicit discrete `levels` for every filled field. Colormaps come only from this whitelist (reversed `_r` versions allowed, e.g. `RdBu_r` so negatives are blue). Within the whitelist, pick the colormap whose colors match the variable's convention:
 
-- Signed fields where 0 is meaningful (anomalies, differences, trends, regression, correlation, and raw ω, vorticity, divergence, u, v, moisture-flux divergence, net radiation) → diverging: `RdBu`, `BrBG` (precipitation and moisture), `bwr`, `PuOr`, `PRGn`, `cmaps.BlueWhiteOrangeRed`. Use symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); draw the colorbar with `spacing="proportional"` and tick 0 at the middle of the white bin.
+- Signed fields where 0 is meaningful (anomalies, differences, trends, regression, correlation, and raw ω, vorticity, divergence, u, v, moisture-flux divergence, net radiation) → diverging: `RdBu`, `BrBG`, `bwr`, `PuOr`, `PRGn`, `cmaps.BlueWhiteOrangeRed`. Use symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); draw the colorbar with `spacing="proportional"` and tick 0 at the middle of the white bin.
 - Non-anomaly heatwave, precipitation, humidity, and wind-speed fields → sequential: `plasma`, `YlGnBu`, `viridis`, `YlOrRd`.
 - `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
 - Comparable panels share `levels`, `cmap`, `extend` (for `pcolormesh`, one `BoundaryNorm(levels, cmap.N, extend="both")` with `cmap = plt.get_cmap(name)`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
