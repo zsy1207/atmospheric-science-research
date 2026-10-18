@@ -27,7 +27,7 @@ New analyses run steps 1–7. Figure-only fixes use Patch Mode.
 
 ## Plot Standards
 
-The rendered PNG, not code parameters, is ground truth.
+The rendered PNG, not code parameters, is ground truth. Set every parameter below to fit the actual project and what RR finds; the goal is a high-quality scientific figure ready for publication in a top-tier atmospheric-science journal.
 
 ### Size and Fonts
 
@@ -159,7 +159,7 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 - Check it against Plot Standards and the checklist below, then classify: `PASS` (nothing left), `REVISE` (fix every visible issue that needs no new information, re-render once, repeat), or `BLOCKED` (needs a user decision or missing input, or the output is unreadable).
 - At least one iteration before `PASS`, at most 5. If not `PASS` by then, mark `BLOCKED` and list what remains in the README.
 - Tune vector density and key, and stippling spacing and size, here against the PNG; the plot code only sets starting values.
-- Revise anything that would look out of place in a top atmospheric-science journal, even when no rule fails.
+- Revise anything that would look out of place in a top-tier atmospheric-science journal, even when no rule fails.
 
 | Check | Pass when |
 |---|---|
@@ -172,6 +172,7 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 | Significance | Visible but subordinate to the field |
 | Layout | Balanced panels; narrow colorbar; no overlap |
 | Physics | Plausible values, units, and signs; pressure axis inverted |
+| Overall | A high-quality scientific figure fit for a top-tier atmospheric-science journal |
 
 ## README Template
 
