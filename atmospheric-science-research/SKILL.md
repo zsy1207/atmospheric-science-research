@@ -23,7 +23,6 @@ New analyses run steps 1–7. Figure-only fixes use Patch Mode.
 
 - **Speed and efficiency** — Prefer packages and algorithms that improve computational efficiency, such as dask.
 - **Regridding** — `cdo remapcon` / xesmf `"conservative"` for precipitation and fluxes; `remapbil` / `"bilinear"` for smooth state variables (T, Z, u, v, q).
-- **Regional padding** — Pad subsets by at least 1 grid point beyond the target bounds so maps have no blank border.
 
 ## Plot Standards
 
