@@ -26,7 +26,7 @@ New analyses run steps 1–7. Figure-only fixes use Patch Mode.
 
 ## Plot Standards
 
-The rendered PNG, not code parameters, is ground truth. Set every parameter below to fit the actual project and what RR finds; the goal is a high-quality scientific figure ready for publication in a top-tier atmospheric-science journal.
+The rendered PNG, not code parameters, is ground truth; the goal is a high-quality scientific figure ready for publication in a top-tier atmospheric-science journal.
 
 ### Size and Fonts
 
@@ -67,7 +67,7 @@ Use explicit discrete `levels` for every filled field: roughly 8–14 bins with 
 | Raw precipitation | `cmaps.precip3_16lev` or `YlGnBu` |
 | Raw humidity, precipitable water, cloud | `YlGnBu` |
 | Wind speed, variance, other magnitudes | `viridis` or `plasma` |
-| Raw height, SLP | line contours over the filled field, not a fill |
+| Raw height, SLP | line contours, not a fill |
 
 - Diverging maps: symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); keep the colorbar's default equal-width bins and put ticks on the level boundaries, so 0 itself is not labeled.
 - `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
@@ -77,14 +77,16 @@ Use explicit discrete `levels` for every filled field: roughly 8–14 bins with 
 ### Layout and Panels
 
 - Always create figures with `dpi=600`, so the vector key is measured at the export resolution, and `layout="compressed"` for map grids or `layout="constrained"` otherwise; use `GridSpec` / `subplot_mosaic` inside it for 3+ panels or shared colorbars.
-- Maps have a fixed aspect: a figure too tall leaves white bands between rows, one too short leaves them between columns. Start tall under `"compressed"`, set the gaps, and trim the height to the content:
+- Maps have a fixed aspect: a figure too tall leaves white bands between rows, one too short leaves them between columns. Create the figure taller than needed under `"compressed"`; once every panel and colorbar is drawn, set the gaps and trim the height to the content:
   ```python
-  fig.get_layout_engine().set(w_pad=0.08, h_pad=0.08)  # inches around each panel: about 4 mm between panels
-  fig.canvas.draw()
-  fig.set_size_inches(fig.get_figwidth(), fig.get_tightbbox().height + 0.1)
+  pad = 0.08  # inches around each panel: about 4 mm between panels
+  fig.get_layout_engine().set(w_pad=pad, h_pad=pad)
+  for _ in range(3):  # a horizontal colorbar needs more than one pass
+      fig.canvas.draw()
+      fig.set_size_inches(fig.get_figwidth(), fig.get_tightbbox().height + 2 * pad)
   ```
 - Panel letters: lower-case bold `a`, `b`, `c` at each panel's upper-left above the frame: `ax.text(0, 1.02, "a", transform=ax.transAxes, ha="left", va="bottom", fontsize=12, fontweight="bold")`.
-- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom", fontsize=10)`. Letters, descriptions, and the vector key share one y per row. In a grid of variables × cases, write each case once above its column and each variable once left of its row (`ax.set_ylabel`) instead of repeating them.
+- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom", fontsize=10)`. Letters, descriptions, and the vector key share one y per row. In a grid of variables × cases, write each case once above its column and each variable once left of its row instead of repeating them: `ax.set_ylabel` on rectangular projections, rotated `ax.text` on others, where the y-axis is hidden.
 - No `suptitle`, figure caption, default axis title, data stamp, or explanatory text inside the figure; interpretation goes to the caption or README.
 
 ### Maps
@@ -113,12 +115,12 @@ Use explicit discrete `levels` for every filled field: roughly 8–14 bins with 
   ax.yaxis.set_major_formatter(LatitudeFormatter())
   ax.tick_params(labelleft=col == 0, labelbottom=row == nrows - 1)
   ```
-- Other projections keep thin gridlines: `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.4, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False`.
+- Other projections keep thin gridlines, labeled the same way: `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.4, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False; gl.left_labels = col == 0; gl.bottom_labels = row == nrows - 1`.
 - Study-region boxes: dashed red/blue, linewidth 1.2–2.0, high zorder.
 
 ### Vectors and Contours
 
-Draw wind and flux vectors with Skyborn's `curly_vector`; it samples the field itself, so do not subsample with `[::n]`. The values below are starting points: tune density, arrow length, line width, and the key during RR until the flow reads clearly at print size.
+Draw wind and flux vectors with Skyborn's `curly_vector`; it samples the field itself, so do not subsample with `[::n]`. Tune density, arrow length, line width, and the key until the flow reads clearly at print size.
 
 ```python
 from skyborn.plot import curly_vector, curly_vector_key
@@ -143,7 +145,7 @@ key.x = 1.0 - key.patch.get_width()  # key arrow tip on the map's right edge
 
 ### Significance
 
-Visible but subordinate to the field. Draw dots with `scatter` on a thinned grid, so spacing, size, and grey level stay tunable during RR:
+Visible but subordinate to the field. Draw dots with `scatter` on a thinned grid, which keeps spacing, size, and grey level adjustable:
 
 ```python
 sig = (p < 0.05)[::n, ::n]
@@ -182,7 +184,7 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 - Open the rendered PNG every iteration; reviewing code alone never counts.
 - Check it against Plot Standards and the checklist below, then classify: `PASS` (nothing left), `REVISE` (fix every visible issue that needs no new information, re-render once, repeat), or `BLOCKED` (needs a user decision or missing input, or the output is unreadable).
 - At least one iteration before `PASS`, at most 5. If not `PASS` by then, mark `BLOCKED` and list what remains in the README.
-- Numbers in Plot Standards are starting values: adjust line widths, densities, dot size and spacing, levels, and figure height to what this figure needs.
+- Numbers in Plot Standards are starting values unless stated as limits: adjust line widths, densities, dot size and spacing, gaps, colorbar `pad` and `aspect`, and levels to what this figure needs.
 - Revise anything that would look out of place in a top-tier atmospheric-science journal, even when no rule fails.
 - Where subagents are available, let a fresh one that sees only the PNG and this section judge `PASS`; the author is a lenient reviewer.
 
