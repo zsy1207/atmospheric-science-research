@@ -1,11 +1,11 @@
 ---
-name: atmospheric-science-research
-description: Computation and publication-grade plotting for atmospheric and climate research on local data files (NetCDF, GRIB, HDF5, Zarr; ERA5, CMIP, reanalysis). Use whenever the user works with gridded lat/lon or pressure-level data and needs diagnostics (climatology, anomalies, composites, regression/correlation, trends, EOF, extremes) or figures (Cartopy maps, cross-sections, time series), even if they do not say "paper figure".
+name: atmospheric-science-plotting
+description: Publication-grade plotting for atmospheric and climate science on gridded lat/lon or pressure-level data (Cartopy maps, wind vectors, contours, significance stippling, cross-sections, time series). Use whenever the user draws or revises such a figure (大气科学绘图、气象气候论文配图), even if they do not say "paper figure"; for this data it takes precedence over generic figure skills.
 ---
 
-# Atmospheric Science Research
+# Atmospheric Science Plotting
 
-Compute diagnostics on local atmospheric data and plot them to journal standard, inside a reproducible project.
+Plot local atmospheric and climate data to journal standard, inside a reproducible project.
 
 ## Workflow
 
@@ -14,7 +14,7 @@ New analyses run steps 1–7. Figure-only fixes use Patch Mode.
 1. **Probe** — Inspect metadata only: `ncdump -h`, `cdo sinfon`, `h5dump -H`, or a metadata-only Python one-liner for Zarr.
 2. **Plan** — Ask only scientific questions that change the result, each with a recommended answer. Record every adopted assumption in the plan and the README.
 3. **Build** — `figN/compute_*.py`, `figN/plot_*.py`, `data_output/figN/...`. Do not reorganize existing projects unless asked.
-4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots read them.
+4. **Compute** — Scripts run without required CLI args, are idempotent, and write reusable outputs before plots read them. Print each output's min, max, NaN fraction, and units, so a wrong variable, unit, or sign is caught before plotting.
 5. **Plot** — Follow Plot Standards.
 6. **Review** — Run RR until each figure is `PASS` or `BLOCKED`.
 7. **Export and document** — Export final files (Plot Standards › Export), then write or update one Chinese `README.md` from the README Template. `BLOCKED` figures and unresolved risks go in its risk section.
@@ -30,19 +30,25 @@ The rendered PNG, not code parameters, is ground truth. Set every parameter belo
 
 ### Size and Fonts
 
-Figure widths are final print widths: 50–85 mm single column, 105–170 mm double column, height under 228 mm. Font sizes are therefore print sizes: panel letters 12 pt bold, panel descriptions 10 pt, everything else (ticks, labels, legends, colorbar, vector key) 8–9 pt, never below 8 pt.
+Figure widths are final print widths: 50–85 mm single column, 105–170 mm double column, height under 228 mm; `figsize` takes inches, so pass `(width_mm / 25.4, height_mm / 25.4)`. Font sizes are therefore print sizes: panel letters 12 pt bold, panel descriptions 10 pt, everything else (ticks, labels, legends, colorbar, vector key) 8–9 pt, never below 8 pt.
 
-Arial, with Helvetica as fallback; when patching, keep the project's existing font. Mathtext uses the same family so units stay upright:
+Arial, with Helvetica as fallback; when patching, keep the project's existing font. Mathtext uses the same family so units stay upright, and the PDF embeds TrueType fonts so its text stays editable:
 
 ```python
 plt.rcParams.update({
     "font.family": "sans-serif",
     "font.sans-serif": ["Arial", "Helvetica"],
+    "font.size": 8,
     "mathtext.default": "regular",
     "mathtext.fontset": "custom",
     "mathtext.rm": "sans",
     "mathtext.it": "sans:italic",
     "mathtext.bf": "sans:bold",
+    "axes.linewidth": 0.6,
+    "xtick.major.width": 0.6,
+    "ytick.major.width": 0.6,
+    "legend.frameon": False,
+    "pdf.fonttype": 42,
 })
 ```
 
@@ -50,10 +56,20 @@ Units in mathtext superscripts: `r"W m$^{-2}$"`, `r"m s$^{-1}$"`. Never slash no
 
 ### Colormaps and Levels
 
-Use explicit discrete `levels` for every filled field. Colormaps come only from this whitelist (reversed `_r` versions allowed, e.g. `RdBu_r` so negatives are blue). Within the whitelist, pick the colormap whose colors match the variable's convention:
+Use explicit discrete `levels` for every filled field: roughly 8–14 bins with round boundaries. Signed fields where 0 is meaningful take a diverging map, one-signed fields a sequential map. Colormaps come only from this table (`_r` reverses):
 
-- Signed fields where 0 is meaningful (anomalies, differences, trends, regression, correlation, and raw ω, vorticity, divergence, u, v, moisture-flux divergence, net radiation) → diverging: `RdBu`, `BrBG`, `bwr`, `PuOr`, `PRGn`, `cmaps.BlueWhiteOrangeRed`, `cmaps.hotcold_18lev`. Use symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); keep the colorbar's default equal-width bins and put ticks on the level boundaries, so 0 itself is not labeled.
-- Non-anomaly heatwave, precipitation, humidity, and wind-speed fields → sequential: `plasma`, `YlGnBu`, `viridis`, `YlOrRd`, `cmaps.precip3_16lev`.
+| Field | Colormap |
+|---|---|
+| Temperature, SST, height, SLP, heat flux, radiation: anomaly, difference, trend, regression, correlation | `RdBu_r` (warm / high is red); or `cmaps.BlueWhiteOrangeRed`, `cmaps.hotcold_18lev`, `bwr` |
+| Precipitation, humidity, soil moisture, cloud: the same signed quantities | `BrBG` (wet is green); `BrBG_r` when positive means drying, e.g. moisture-flux divergence |
+| Raw u, v, ω, vorticity, divergence, streamfunction, net radiation | `RdBu_r`; `PuOr_r` or `PRGn` when the figure already uses `RdBu_r` for another variable |
+| Raw temperature, heatwave metrics | `YlOrRd` |
+| Raw precipitation | `cmaps.precip3_16lev` or `YlGnBu` |
+| Raw humidity, precipitable water, cloud | `YlGnBu` |
+| Wind speed, variance, other magnitudes | `viridis` or `plasma` |
+| Raw height, SLP | line contours over the filled field, not a fill |
+
+- Diverging maps: symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); keep the colorbar's default equal-width bins and put ticks on the level boundaries, so 0 itself is not labeled.
 - `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
 - Comparable panels share `levels`, `cmap`, `extend` (for `pcolormesh`, one `BoundaryNorm(levels, cmap.N, extend="both")` with `cmap = plt.get_cmap(name)`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
 - Colorbars: horizontal below maps, vertical for a standalone map or a right-side shared bar; narrow (`aspect` 25–40), never longer than the panel group, few ticks, short label with units. One shared colorbar per variable and scale.
@@ -61,8 +77,8 @@ Use explicit discrete `levels` for every filled field. Colormaps come only from 
 ### Layout and Panels
 
 - Always create figures with `dpi=600, layout="constrained"`, so the vector key is measured at the export resolution; use `GridSpec` / `subplot_mosaic` inside it for 3+ panels or shared colorbars. Recheck spacing after adding colorbars to GeoAxes.
-- Panel letters: lower-case bold `a`, `b`, `c` at each panel's upper-left above the frame: `ax.text(0, 1.02, "a", transform=ax.transAxes, ha="left", va="bottom", fontweight="bold")`.
-- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom")`. Letters, descriptions, and the vector key share one y per row.
+- Panel letters: lower-case bold `a`, `b`, `c` at each panel's upper-left above the frame: `ax.text(0, 1.02, "a", transform=ax.transAxes, ha="left", va="bottom", fontsize=12, fontweight="bold")`.
+- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom", fontsize=10)`. Letters, descriptions, and the vector key share one y per row.
 - No `suptitle`, figure caption, default axis title, data stamp, or explanatory text inside the figure; interpretation goes to the caption or README.
 
 ### Maps
@@ -79,27 +95,10 @@ Use explicit discrete `levels` for every filled field. Colormaps come only from 
   from cartopy.util import add_cyclic
   cyc, cyc_lon = add_cyclic(da.values, x=da["lon"].values, axis=-1)
   ```
-- Regions crossing 0° or 180°: before subsetting, convert longitudes to −180–180 (`(da.lon + 180) % 360 - 180`) or 0–360 (`da.lon % 360`) with `assign_coords`, then `sortby("lon")`; padding alone cannot close the seam.
+- Regions crossing 0° or 180°: before subsetting, convert longitudes to −180–180 (`(da.lon + 180) % 360 - 180`) or 0–360 (`da.lon % 360`) with `assign_coords`, then `sortby("lon")`.
 - `ax.coastlines(linewidth=0.8, color="0.2")`; no national borders unless scientifically needed.
 - `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.6, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False`. In multi-panel maps label only the left column and bottom row: `gl.left_labels = col == 0; gl.bottom_labels = row == nrows - 1`.
 - Study-region boxes: dashed red/blue, linewidth 1.2–2.0, high zorder.
-
-### Tibetan Plateau Masking
-
-On maps that include the Tibetan Plateau, at 700 hPa and below (700 / 850 / 925 / 1000 hPa): mask vectors, contour lines, and significance dots on the plateau with `regionmask`, keep the filled field complete, and draw the grey polygon over it. The polygon's default zorder (1.5) already sits above the fill, so no white edge appears.
-
-```python
-from pathlib import Path
-import geopandas as gpd, regionmask
-
-tibet = gpd.read_file(Path(__file__).resolve().parents[1] / "data/map/Tibet/Tibet.shp")
-on_tp = regionmask.mask_geopandas(tibet, u).notnull()   # True on plateau grid points
-u, v = u.where(~on_tp), v.where(~on_tp)                 # same for contour fields and p-values
-ax.add_geometries(tibet.geometry, crs=ccrs.PlateCarree(),
-                  facecolor="lightgrey", edgecolor="grey", linewidth=0.5)
-```
-
-If the file is missing, use the 3000 m orography contour when surface geopotential is available; otherwise mark the figure `BLOCKED`.
 
 ### Vectors and Contours
 
@@ -148,7 +147,7 @@ for ext in exts:
 plt.close(fig)
 ```
 
-If the PDF is large or slow, pass `rasterized=True` to dense layers.
+Never pass `bbox_inches="tight"`: it crops the canvas, so the width and font sizes no longer match print. If the PDF is large or slow, pass `rasterized=True` to dense layers.
 
 ## RR Rules
 
@@ -164,13 +163,12 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 |---|---|
 | Text | Arial or the project font; mathtext units; nothing clipped or below 8 pt; no suptitle, caption, or explanatory text |
 | Panels | Bold letters, short centered descriptions, and the vector key on one baseline |
-| Colormap | Whitelisted colormap with explicit `levels`; 0-centered diverging for signed fields with a meaningful zero, sequential otherwise; `extend` set; comparable panels share one scale |
-| Maps | Coastlines; lat/lon labels; no dateline seam or blank border |
-| Tibet | At 700 hPa and below, no arrows, contours, or dots on the plateau; grey polygon drawn |
+| Colormap | The variable's row in the table, with explicit `levels`; white bin straddles 0 on diverging maps; `extend` set; signal neither washed out nor saturated; comparable panels share one scale |
+| Maps | Coastlines; lat/lon labels on the left column and bottom row only; no dateline seam |
 | Vectors | Readable density; one key at top-right with its tip on the right edge |
 | Significance | Visible but subordinate to the field |
 | Layout | Balanced panels; narrow colorbar; no overlap |
-| Physics | Plausible values, units, and signs; pressure axis inverted |
+| Physics | Plausible values, units, and signs, consistent with the ranges printed at compute time; pressure axis inverted |
 | Overall | A high-quality scientific figure fit for a top-tier atmospheric-science journal |
 
 ## README Template
