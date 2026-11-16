@@ -72,13 +72,19 @@ Use explicit discrete `levels` for every filled field: roughly 8–14 bins with 
 - Diverging maps: symmetric `levels` with no level at 0, so the middle bin straddles 0 and is white (e.g. ±0.5, ±1, …); keep the colorbar's default equal-width bins and put ticks on the level boundaries, so 0 itself is not labeled.
 - `extend="both"` whenever values can exceed `levels`; `"max"` / `"min"` when one tail is physically closed.
 - Comparable panels share `levels`, `cmap`, `extend` (for `pcolormesh`, one `BoundaryNorm(levels, cmap.N, extend="both")` with `cmap = plt.get_cmap(name)`). Never autoscale per panel. Set levels from domain knowledge; if the signal is washed out or saturated, inspect ranges and reset.
-- Colorbars: horizontal below maps, vertical for a standalone map or a right-side shared bar; narrow (`aspect` 25–40), never longer than the panel group, few ticks, short label with units. One shared colorbar per variable and scale.
+- Colorbars: horizontal below maps, vertical for a standalone map or a right-side shared bar; narrow (`aspect` 20–40 by bar length), close to the panels (`pad` about 0.02 of the panel group's width or height; the default is loose), never longer than the panel group, few ticks, short label with units. One shared colorbar per variable and scale.
 
 ### Layout and Panels
 
-- Always create figures with `dpi=600, layout="constrained"`, so the vector key is measured at the export resolution; use `GridSpec` / `subplot_mosaic` inside it for 3+ panels or shared colorbars. Recheck spacing after adding colorbars to GeoAxes.
+- Always create figures with `dpi=600`, so the vector key is measured at the export resolution, and `layout="compressed"` for map grids or `layout="constrained"` otherwise; use `GridSpec` / `subplot_mosaic` inside it for 3+ panels or shared colorbars.
+- Maps have a fixed aspect: a figure too tall leaves white bands between rows, one too short leaves them between columns. Start tall under `"compressed"`, set the gaps, and trim the height to the content:
+  ```python
+  fig.get_layout_engine().set(w_pad=0.08, h_pad=0.08)  # inches around each panel: about 4 mm between panels
+  fig.canvas.draw()
+  fig.set_size_inches(fig.get_figwidth(), fig.get_tightbbox().height + 0.1)
+  ```
 - Panel letters: lower-case bold `a`, `b`, `c` at each panel's upper-left above the frame: `ax.text(0, 1.02, "a", transform=ax.transAxes, ha="left", va="bottom", fontsize=12, fontweight="bold")`.
-- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom", fontsize=10)`. Letters, descriptions, and the vector key share one y per row.
+- Panel descriptions: noun phrases of 6 words or fewer (`850 hPa wind`, `El Niño composite`), centered: `ax.text(0.5, 1.02, "850 hPa wind", transform=ax.transAxes, ha="center", va="bottom", fontsize=10)`. Letters, descriptions, and the vector key share one y per row. In a grid of variables × cases, write each case once above its column and each variable once left of its row (`ax.set_ylabel`) instead of repeating them.
 - No `suptitle`, figure caption, default axis title, data stamp, or explanatory text inside the figure; interpretation goes to the caption or README.
 
 ### Maps
@@ -96,8 +102,18 @@ Use explicit discrete `levels` for every filled field: roughly 8–14 bins with 
   cyc, cyc_lon = add_cyclic(da.values, x=da["lon"].values, axis=-1)
   ```
 - Regions crossing 0° or 180°: before subsetting, convert longitudes to −180–180 (`(da.lon + 180) % 360 - 180`) or 0–360 (`da.lon % 360`) with `assign_coords`, then `sortby("lon")`.
-- `ax.coastlines(linewidth=0.8, color="0.2")`; no national borders unless scientifically needed.
-- `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.6, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False`. In multi-panel maps label only the left column and bottom row: `gl.left_labels = col == 0; gl.bottom_labels = row == nrows - 1`.
+- `ax.coastlines("110m", linewidth=0.5, color="0.2")`; `"50m"` only for panels spanning under about 60° of longitude, since its small islands speckle wider maps. No national borders unless scientifically needed.
+- Missing data shows grey, never white, which already means near zero: `ax.set_facecolor("0.85")`.
+- Rectangular projections take frame ticks at round values inside the frame and no interior gridlines; multi-panel maps label only the left column and bottom row:
+  ```python
+  from cartopy.mpl.ticker import LatitudeFormatter, LongitudeFormatter
+  ax.set_xticks(lon_ticks, crs=ccrs.PlateCarree())
+  ax.set_yticks(lat_ticks, crs=ccrs.PlateCarree())
+  ax.xaxis.set_major_formatter(LongitudeFormatter())
+  ax.yaxis.set_major_formatter(LatitudeFormatter())
+  ax.tick_params(labelleft=col == 0, labelbottom=row == nrows - 1)
+  ```
+- Other projections keep thin gridlines: `gl = ax.gridlines(draw_labels=True, linestyle="--", linewidth=0.4, color="0.5", alpha=0.6)`; `gl.top_labels = gl.right_labels = False`.
 - Study-region boxes: dashed red/blue, linewidth 1.2–2.0, high zorder.
 
 ### Vectors and Contours
@@ -120,13 +136,23 @@ key.x = 1.0 - key.patch.get_width()  # key arrow tip on the map's right edge
 ```
 
 - Pass `ref_magnitude` (an interpretable speed, also the key's `U`); without it each panel scales to its own maximum. Panels sharing one key must have equal widths and the same `ref_magnitude` and `ref_length`; otherwise give each panel its own key. Build the key from a panel whose maximum speed is at least `U`, since Skyborn caps arrow length at that maximum. For non-PlateCarree projections, `regrid_shape` evens out arrow spacing.
+- Mask weak vectors before plotting, since they render as stubs that clutter the map: below about 20% of `ref_magnitude`, and in composites and regressions also those failing the test. `speed = np.hypot(u, v); u, v = u.where(speed >= 2), v.where(speed >= 2)`.
 - Pass `units` in mathtext; the default `"m/s"` breaks the unit rule.
 - One key at the top-right outside the map, on the letter/description baseline, styled like the field arrows.
 - Contours only when they add interpretation (zero lines, thresholds). Zero contour dark, 0.8–1.0 pt; others 0.4–0.6 pt with moderate alpha; label selected contours only.
 
 ### Significance
 
-Visible but subordinate to the field. Use dots by default; choose their spacing, size, and alpha for the panel and tune them during RR. Dots should never merge into dark patches or hide the field. Use low-saturation red/blue only when the sign of the response must be distinguished. Sparse `"."` or `".."` hatching via `contourf(..., levels=[0, 0.05, 1], hatches=[".", None], colors="none")` is an alternative.
+Visible but subordinate to the field. Draw dots with `scatter` on a thinned grid, so spacing, size, and grey level stay tunable during RR:
+
+```python
+sig = (p < 0.05)[::n, ::n]
+lon2d, lat2d = np.meshgrid(sig["lon"], sig["lat"])
+ax.scatter(lon2d[sig.values], lat2d[sig.values], s=3, c="0.2", linewidths=0,
+           transform=ccrs.PlateCarree())
+```
+
+Dots should never merge into dark patches or hide the field. Use low-saturation red/blue only when the sign of the response must be distinguished.
 
 ### Other Figure Types
 
@@ -147,7 +173,7 @@ for ext in exts:
 plt.close(fig)
 ```
 
-Never pass `bbox_inches="tight"`: it crops the canvas, so the width and font sizes no longer match print. If the PDF is large or slow, pass `rasterized=True` to dense layers.
+Never pass `bbox_inches="tight"`: it crops the canvas, so the width and font sizes no longer match print. Rasterize filled fields (`filled.set_rasterized(True)`) and keep text, coastlines, and vectors as vector: PDF viewers otherwise show white hairlines between `contourf` polygons.
 
 ## RR Rules
 
@@ -156,18 +182,19 @@ Review-revision (RR) catches visual defects and obvious data errors in each rend
 - Open the rendered PNG every iteration; reviewing code alone never counts.
 - Check it against Plot Standards and the checklist below, then classify: `PASS` (nothing left), `REVISE` (fix every visible issue that needs no new information, re-render once, repeat), or `BLOCKED` (needs a user decision or missing input, or the output is unreadable).
 - At least one iteration before `PASS`, at most 5. If not `PASS` by then, mark `BLOCKED` and list what remains in the README.
-- Tune vector density and key, and stippling spacing and size, here against the PNG; the plot code only sets starting values.
+- Numbers in Plot Standards are starting values: adjust line widths, densities, dot size and spacing, levels, and figure height to what this figure needs.
 - Revise anything that would look out of place in a top-tier atmospheric-science journal, even when no rule fails.
+- Where subagents are available, let a fresh one that sees only the PNG and this section judge `PASS`; the author is a lenient reviewer.
 
 | Check | Pass when |
 |---|---|
 | Text | Arial or the project font; mathtext units; nothing clipped or below 8 pt; no suptitle, caption, or explanatory text |
 | Panels | Bold letters, short centered descriptions, and the vector key on one baseline |
 | Colormap | The variable's row in the table, with explicit `levels`; white bin straddles 0 on diverging maps; `extend` set; signal neither washed out nor saturated; comparable panels share one scale |
-| Maps | Coastlines; lat/lon labels on the left column and bottom row only; no dateline seam |
-| Vectors | Readable density; one key at top-right with its tip on the right edge |
+| Maps | Coastlines; lat/lon labels on the left column and bottom row only; missing data grey; no dateline seam |
+| Vectors | Readable density; no weak-wind stubs; one key at top-right with its tip on the right edge |
 | Significance | Visible but subordinate to the field |
-| Layout | Balanced panels; narrow colorbar; no overlap |
+| Layout | Panels fill the canvas with even gaps of a few mm; colorbar easy to read and close to the panels; no overlap |
 | Physics | Plausible values, units, and signs, consistent with the ranges printed at compute time; pressure axis inverted |
 | Overall | A high-quality scientific figure fit for a top-tier atmospheric-science journal |
 
