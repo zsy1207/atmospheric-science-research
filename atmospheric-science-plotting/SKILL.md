@@ -1,6 +1,6 @@
 ---
 name: atmospheric-science-plotting
-description: Publication-grade plotting for atmospheric and climate science on gridded lat/lon or pressure-level data (Cartopy maps, wind vectors, contours, significance stippling, cross-sections, time series). Use whenever the user draws or revises such a figure (大气科学绘图、气象气候论文配图), even if they do not say "paper figure"; for this data it takes precedence over generic figure skills.
+description: Publication-grade plotting for atmospheric and climate science.
 ---
 
 # Atmospheric Science Plotting
